@@ -7,30 +7,68 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  FormHelperText,
   Grid,
   Paper,
   Chip,
-  Autocomplete,
-  FormGroup,
-  FormControlLabel,
-  Checkbox,
-  Stack,
-  Divider
+  IconButton,
+  ToggleButtonGroup,
+  ToggleButton,
 } from '@mui/material';
+import {
+  Add as AddIcon,
+  Delete as DeleteIcon,
+  Edit as EditIcon
+} from '@mui/icons-material';
+
+// Enum for party types
+enum PartyType {
+  Partner = 'Partner',
+  Supplier = 'Supplier'
+}
+
+// Step definition with description
+interface StepDefinition {
+  name: string;
+  description: string;
+}
+
+// Predefined step names with descriptions
+const StepNames: StepDefinition[] = [
+  {
+    name: 'Initial Assessment',
+    description: 'Conduct a comprehensive initial evaluation of the item to identify primary issues and determine the scope of rework needed.'
+  },
+  {
+    name: 'Detailed Inspection',
+    description: 'Perform an in-depth, systematic examination to uncover all potential defects, damages, or areas requiring specific attention.'
+  },
+  {
+    name: 'Component Replacement',
+    description: 'Identify and replace worn-out, damaged, or malfunctioning components with new or refurbished parts to restore functionality.'
+  },
+  {
+    name: 'Recalibration',
+    description: 'Adjust and fine-tune the item to ensure it meets original manufacturer specifications and optimal performance standards.'
+  },
+  {
+    name: 'Final Quality Check',
+    description: 'Conduct a comprehensive final inspection to verify that all rework meets quality standards and the item functions as expected.'
+  }
+];
+
+// Interface for a single rework step
+interface ReworkStep {
+  id: string;
+  name: string;
+  quantity: number;
+  payingParty: PartyType;
+  responsibleParty: PartyType;
+}
 
 // Interface for the form data
 interface ReworkFormData {
-  quantity: number;
-  reworkType: string;
-  reworkLocationId: string;
-  deadline: string; // Changed from Date to string
-  assignedTo: string[];
-  description: string;
-  trackShipping: boolean;
-  notifyCustomer: boolean;
-  attachments: File[];
-  additionalInstructions: string;
+  globalNote: string;
+  reworkSteps: ReworkStep[];
 }
 
 // Interface for the form props
@@ -39,404 +77,383 @@ interface ReworkFormProps {
   initialData?: Partial<ReworkFormData>;
 }
 
-// Mock data for dropdowns
-const mockReworkTypes = [
-  'Repair', 'Replace Parts', 'Clean and Restore', 'Upgrade', 'Reconfigure'
-];
-
-const mockLocations = [
-  { id: 'loc-1', name: 'Main Warehouse - Berlin' },
-  { id: 'loc-2', name: 'Service Center - Hamburg' },
-  { id: 'loc-3', name: 'Repair Facility - Munich' },
-  { id: 'loc-4', name: 'Supplier Facility - Frankfurt' }
-];
-
-const mockAssignees = [
-  { id: 'user-1', name: 'John Doe' },
-  { id: 'user-2', name: 'Jane Smith' },
-  { id: 'user-3', name: 'Michael Johnson' },
-  { id: 'user-4', name: 'Sarah Williams' },
-  { id: 'user-5', name: 'Robert Brown' }
-];
-
-// Helper for getting today's date in YYYY-MM-DD format
-const getTodayString = () => {
-  const today = new Date();
-  return today.toISOString().split('T')[0];
-};
-
 const ReworkForm: React.FC<ReworkFormProps> = ({ onFormChange, initialData = {} }) => {
-  // Initialize form with default values or provided initial data
-  const [formData, setFormData] = useState<ReworkFormData>({
-    quantity: initialData.quantity || 1,
-    reworkType: initialData.reworkType || '',
-    reworkLocationId: initialData.reworkLocationId || '',
-    deadline: initialData.deadline || getTodayString(),
-    assignedTo: initialData.assignedTo || [],
-    description: initialData.description || '',
-    trackShipping: initialData.trackShipping !== undefined ? initialData.trackShipping : true,
-    notifyCustomer: initialData.notifyCustomer !== undefined ? initialData.notifyCustomer : false,
-    attachments: initialData.attachments || [],
-    additionalInstructions: initialData.additionalInstructions || ''
+  // State for steps
+  const [reworkSteps, setReworkSteps] = useState<ReworkStep[]>(
+      initialData.reworkSteps || []
+  );
+
+  // State for new step form
+  const [newStep, setNewStep] = useState<Partial<ReworkStep>>({
+    name: '',
+    quantity: 1,
+    payingParty: PartyType.Supplier,
+    responsibleParty: PartyType.Supplier
   });
 
-  // Validation state
-  const [errors, setErrors] = useState<Partial<Record<keyof ReworkFormData, string>>>({});
+  // State for step description
+  const [stepDescription, setStepDescription] = useState<string>('');
 
-  // Handle form field changes
-  const handleChange = (field: keyof ReworkFormData, value: any) => {
-    const updatedData = { ...formData, [field]: value };
-    setFormData(updatedData);
-    
-    // Clear error for this field if it exists
-    if (errors[field]) {
-      setErrors({ ...errors, [field]: undefined });
-    }
-    
-    // Notify parent component
-    onFormChange(updatedData);
-    
-    // Validate field
-    validateField(field, value);
+  // State to track if we're editing an existing step
+  const [editingStepId, setEditingStepId] = useState<string | null>(null);
+
+  // State for global note
+  const [globalNote, setGlobalNote] = useState(initialData.globalNote || '');
+
+  // Handle global note change
+  const handleGlobalNoteChange = (note: string) => {
+    setGlobalNote(note);
+    onFormChange({
+      globalNote: note,
+      reworkSteps
+    });
   };
 
-  // Validate a single field
-  const validateField = (field: keyof ReworkFormData, value: any) => {
-    let errorMessage = '';
-    
-    switch (field) {
-      case 'quantity':
-        if (!value || value < 1) {
-          errorMessage = 'Quantity must be at least 1';
-        }
-        break;
-        
-      case 'reworkType':
-        if (!value) {
-          errorMessage = 'Rework type is required';
-        }
-        break;
-        
-      case 'reworkLocationId':
-        if (!value) {
-          errorMessage = 'Rework location is required';
-        }
-        break;
-        
-      case 'deadline':
-        if (!value) {
-          errorMessage = 'Deadline is required';
-        } else {
-          const today = getTodayString();
-          
-          if (value < today) {
-            errorMessage = 'Deadline cannot be in the past';
-          }
-        }
-        break;
-        
-      case 'description':
-        if (!value || value.trim().length < 10) {
-          errorMessage = 'Description should be at least 10 characters';
-        }
-        break;
-    }
-    
-    if (errorMessage) {
-      setErrors({ ...errors, [field]: errorMessage });
-    }
+  // Handle step name selection
+  const handleStepNameChange = (stepName: string) => {
+    const selectedStep = StepNames.find(step => step.name === stepName);
+    setNewStep(prev => ({
+      ...prev,
+      name: stepName
+    }));
+    setStepDescription(selectedStep ? selectedStep.description : '');
   };
 
-  // Validate the entire form
-  const validateForm = (): boolean => {
-    const newErrors: Partial<Record<keyof ReworkFormData, string>> = {};
-    
-    // Check required fields
-    if (!formData.quantity || formData.quantity < 1) {
-      newErrors.quantity = 'Quantity must be at least 1';
-    }
-    
-    if (!formData.reworkType) {
-      newErrors.reworkType = 'Rework type is required';
-    }
-    
-    if (!formData.reworkLocationId) {
-      newErrors.reworkLocationId = 'Rework location is required';
-    }
-    
-    if (!formData.deadline) {
-      newErrors.deadline = 'Deadline is required';
+  // Add or update a step
+  const handleSaveStep = () => {
+    // Validate step before adding/updating
+    if (!newStep.name || !newStep.quantity) return;
+
+    if (editingStepId) {
+      // Update existing step
+      const updatedSteps = reworkSteps.map(step =>
+          step.id === editingStepId
+              ? {
+                id: step.id,
+                name: newStep.name!,
+                quantity: newStep.quantity!,
+                payingParty: newStep.payingParty!,
+                responsibleParty: newStep.responsibleParty!
+              }
+              : step
+      );
+
+      setReworkSteps(updatedSteps);
+      onFormChange({ globalNote, reworkSteps: updatedSteps });
+
+      // Reset editing state
+      setEditingStepId(null);
     } else {
-      const today = getTodayString();
-      
-      if (formData.deadline < today) {
-        newErrors.deadline = 'Deadline cannot be in the past';
-      }
+      // Add new step
+      const stepToAdd: ReworkStep = {
+        id: `step-${Date.now()}`,
+        name: newStep.name!,
+        quantity: newStep.quantity!,
+        payingParty: newStep.payingParty!,
+        responsibleParty: newStep.responsibleParty!
+      };
+
+      const updatedSteps = [...reworkSteps, stepToAdd];
+      setReworkSteps(updatedSteps);
+      onFormChange({ globalNote, reworkSteps: updatedSteps });
     }
-    
-    if (!formData.description || formData.description.trim().length < 10) {
-      newErrors.description = 'Description should be at least 10 characters';
-    }
-    
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+
+    // Reset new step form
+    setNewStep({
+      name: '',
+      quantity: 1,
+      payingParty: PartyType.Supplier,
+      responsibleParty: PartyType.Supplier
+    });
+
+    // Clear description
+    setStepDescription('');
   };
 
-  // Find location name by ID
-  const getLocationName = (locationId: string) => {
-    const location = mockLocations.find(loc => loc.id === locationId);
-    return location ? location.name : '';
+  // Prepare step for editing
+  const handleEditStep = (step: ReworkStep) => {
+    setEditingStepId(step.id);
+    setNewStep({
+      name: step.name,
+      quantity: step.quantity,
+      payingParty: step.payingParty,
+      responsibleParty: step.responsibleParty
+    });
+
+    // Set description for editing step
+    const selectedStep = StepNames.find(s => s.name === step.name);
+    setStepDescription(selectedStep ? selectedStep.description : '');
   };
 
-  // Handle file uploads
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.files) {
-      const fileList = Array.from(event.target.files);
-      handleChange('attachments', [...formData.attachments, ...fileList]);
-    }
-  };
+  // Remove a step
+  const handleRemoveStep = (stepId: string) => {
+    const updatedSteps = reworkSteps.filter(step => step.id !== stepId);
+    setReworkSteps(updatedSteps);
 
-  // Remove an uploaded file
-  const handleRemoveFile = (fileToRemove: File) => {
-    const updatedFiles = formData.attachments.filter(file => file !== fileToRemove);
-    handleChange('attachments', updatedFiles);
+    // Notify parent component
+    onFormChange({
+      globalNote,
+      reworkSteps: updatedSteps
+    });
   };
 
   return (
-    <Box component="form" noValidate autoComplete="off">
-      <Grid container spacing={3}>
-        {/* Basic Information Section */}
-        <Grid item xs={12}>
-          <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
-            Basic Information
-          </Typography>
-          <Divider sx={{ mb: 2 }} />
-        </Grid>
-        
-        <Grid item xs={12} sm={6}>
-          <TextField
-            fullWidth
-            label="Quantity"
-            type="number"
-            value={formData.quantity}
-            onChange={(e) => handleChange('quantity', parseInt(e.target.value) || 0)}
-            error={!!errors.quantity}
-            helperText={errors.quantity}
-            InputProps={{ inputProps: { min: 1 } }}
-            required
-          />
-        </Grid>
-        
-        <Grid item xs={12} sm={6}>
-          <FormControl fullWidth error={!!errors.reworkType} required>
-            <InputLabel>Rework Type</InputLabel>
-            <Select
-              value={formData.reworkType}
-              label="Rework Type"
-              onChange={(e) => handleChange('reworkType', e.target.value)}
-            >
-              {mockReworkTypes.map((type) => (
-                <MenuItem key={type} value={type}>{type}</MenuItem>
-              ))}
-            </Select>
-            {errors.reworkType && <FormHelperText>{errors.reworkType}</FormHelperText>}
-          </FormControl>
-        </Grid>
-        
-        <Grid item xs={12}>
-          <TextField
-            fullWidth
-            label="Description"
-            multiline
-            rows={3}
-            value={formData.description}
-            onChange={(e) => handleChange('description', e.target.value)}
-            error={!!errors.description}
-            helperText={errors.description || 'Describe the rework requirements in detail'}
-            required
-          />
-        </Grid>
-        
-        {/* Assignment Section */}
-        <Grid item xs={12} sx={{ mt: 2 }}>
-          <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
-            Assignment Details
-          </Typography>
-          <Divider sx={{ mb: 2 }} />
-        </Grid>
-        
-        <Grid item xs={12} sm={6}>
-          <FormControl fullWidth error={!!errors.reworkLocationId} required>
-            <InputLabel>Rework Location</InputLabel>
-            <Select
-              value={formData.reworkLocationId}
-              label="Rework Location"
-              onChange={(e) => handleChange('reworkLocationId', e.target.value)}
-            >
-              {mockLocations.map((location) => (
-                <MenuItem key={location.id} value={location.id}>{location.name}</MenuItem>
-              ))}
-            </Select>
-            {errors.reworkLocationId && (
-              <FormHelperText>{errors.reworkLocationId}</FormHelperText>
-            )}
-          </FormControl>
-        </Grid>
-        
-        <Grid item xs={12} sm={6}>
-          <TextField
-            fullWidth
-            label="Deadline"
-            type="date"
-            value={formData.deadline}
-            onChange={(e) => handleChange('deadline', e.target.value)}
-            error={!!errors.deadline}
-            helperText={errors.deadline}
-            required
-            InputLabelProps={{
-              shrink: true,
-            }}
-            inputProps={{
-              min: getTodayString()
-            }}
-          />
-        </Grid>
-        
-        <Grid item xs={12}>
-          <Autocomplete
-            multiple
-            options={mockAssignees}
-            getOptionLabel={(option) => typeof option === 'string' ? option : option.name}
-            value={formData.assignedTo.map(id => 
-              mockAssignees.find(a => a.id === id) || { id, name: id }
-            )}
-            onChange={(_, newValue) => {
-              handleChange('assignedTo', newValue.map(v => typeof v === 'string' ? v : v.id));
-            }}
-            renderInput={(params) => (
-              <TextField
-                {...params}
-                label="Assign To"
-                placeholder="Select team members"
-                fullWidth
-              />
-            )}
-            renderTags={(tagValue, getTagProps) =>
-              tagValue.map((option, index) => (
-                <Chip
-                  label={typeof option === 'string' ? option : option.name}
-                  {...getTagProps({ index })}
-                  sx={{ m: 0.5 }}
-                />
-              ))
-            }
-          />
-        </Grid>
-        
-        {/* Additional Options Section */}
-        <Grid item xs={12} sx={{ mt: 2 }}>
-          <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
-            Additional Options
-          </Typography>
-          <Divider sx={{ mb: 2 }} />
-        </Grid>
-        
-        <Grid item xs={12}>
-          <FormGroup>
-            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={formData.trackShipping}
-                    onChange={(e) => handleChange('trackShipping', e.target.checked)}
-                  />
-                }
-                label="Track Shipping"
-              />
-              
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={formData.notifyCustomer}
-                    onChange={(e) => handleChange('notifyCustomer', e.target.checked)}
-                  />
-                }
-                label="Notify Customer"
-              />
-            </Stack>
-          </FormGroup>
-        </Grid>
-        
-        <Grid item xs={12}>
-          <TextField
-            fullWidth
-            label="Additional Instructions"
-            multiline
-            rows={2}
-            value={formData.additionalInstructions}
-            onChange={(e) => handleChange('additionalInstructions', e.target.value)}
-            placeholder="Any special requirements or instructions"
-          />
-        </Grid>
-        
-        {/* Attachments Section */}
-        <Grid item xs={12} sx={{ mt: 2 }}>
-          <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
-            Attachments
-          </Typography>
-          <Divider sx={{ mb: 2 }} />
-        </Grid>
-        
-        <Grid item xs={12}>
-          <Box
+      <Box>
+        {/* Steps Section */}
+        <Paper
+            variant="outlined"
             sx={{
-              border: '1px dashed',
+              p: 2,
+              mb: 3,
               borderColor: 'divider',
-              borderRadius: 1,
-              p: 3,
-              textAlign: 'center',
-              backgroundColor: 'background.default',
-              cursor: 'pointer',
+              backgroundColor: 'background.default'
             }}
-            onClick={() => document.getElementById('file-upload')?.click()}
-          >
-            <input
-              id="file-upload"
-              type="file"
-              multiple
-              style={{ display: 'none' }}
-              onChange={handleFileChange}
-            />
-            <Typography variant="body1" gutterBottom>
-              Drop files here or click to upload
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Supports images, PDFs, and documents (Max 10MB each)
-            </Typography>
-          </Box>
-        </Grid>
-        
-        {formData.attachments.length > 0 && (
-          <Grid item xs={12}>
-            <Paper variant="outlined" sx={{ p: 2 }}>
-              <Typography variant="subtitle2" gutterBottom>
-                Uploaded Files ({formData.attachments.length})
+        >
+          <Typography variant="h6" color="text.secondary" gutterBottom>
+            Rework Steps
+          </Typography>
+
+          {/* New Step Input Form */}
+          <Grid container spacing={2} sx={{ mb: 2 }}>
+            <Grid item xs={12} sm={3}>
+              <Typography variant="body2" sx={{ mb: 1 }}>Step Name</Typography>
+              <FormControl fullWidth variant="outlined" size="small">
+                <Select
+                    value={newStep.name || ''}
+                    displayEmpty
+                    renderValue={(selected) =>
+                        selected ? selected : <em>Select Step Name</em>
+                    }
+                    onChange={(e) => handleStepNameChange(e.target.value)}
+                >
+                  <MenuItem disabled value="">
+                    <em>Select Step Name</em>
+                  </MenuItem>
+                  {StepNames.map((step) => (
+                      <MenuItem key={step.name} value={step.name}>
+                        {step.name}
+                      </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              {stepDescription && (
+                  <Typography
+                      variant="body2"
+                      color="text.secondary"
+                      sx={{
+                        mt: 1,
+                        p: 1,
+                        bgcolor: 'background.paper',
+                        borderRadius: 1
+                      }}
+                  >
+                    {stepDescription}
+                  </Typography>
+              )}
+            </Grid>
+            <Grid item xs={12} sm={2}>
+              <Typography variant="body2" sx={{ mb: 1 }}>Quantity</Typography>
+              <TextField
+                  fullWidth
+                  type="number"
+                  variant="outlined"
+                  size="small"
+                  value={newStep.quantity}
+                  onChange={(e) => setNewStep(prev => ({
+                    ...prev,
+                    quantity: parseInt(e.target.value) || 1
+                  }))}
+                  InputProps={{
+                    inputProps: { min: 1 }
+                  }}
+              />
+            </Grid>
+            <Grid item xs={12} sm={3}>
+              <Typography variant="body2" sx={{ mb: 1 }}>Paying Party</Typography>
+              <ToggleButtonGroup
+                  color="primary"
+                  exclusive
+                  fullWidth
+                  size="small"
+                  value={newStep.payingParty}
+                  onChange={(_, value) => value && setNewStep(prev => ({
+                    ...prev,
+                    payingParty: value
+                  }))}
+                  sx={{
+                    '& .MuiToggleButton-root': {
+                      textTransform: 'none',
+                      borderRadius: '4px',
+                      '&.Mui-selected': {
+                        backgroundColor: 'primary.light',
+                        color: 'primary.contrastText'
+                      }
+                    }
+                  }}
+              >
+                <ToggleButton value={PartyType.Partner}>
+                  Partner
+                </ToggleButton>
+                <ToggleButton value={PartyType.Supplier}>
+                  Supplier
+                </ToggleButton>
+              </ToggleButtonGroup>
+            </Grid>
+            <Grid item xs={12} sm={3}>
+              <Typography variant="body2" sx={{ mb: 1 }}>Responsible Party</Typography>
+              <ToggleButtonGroup
+                  color="primary"
+                  exclusive
+                  fullWidth
+                  size="small"
+                  value={newStep.responsibleParty}
+                  onChange={(_, value) => value && setNewStep(prev => ({
+                    ...prev,
+                    responsibleParty: value
+                  }))}
+                  sx={{
+                    '& .MuiToggleButton-root': {
+                      textTransform: 'none',
+                      borderRadius: '4px',
+                      '&.Mui-selected': {
+                        backgroundColor: 'primary.light',
+                        color: 'primary.contrastText'
+                      }
+                    }
+                  }}
+              >
+                <ToggleButton value={PartyType.Partner}>
+                  Partner
+                </ToggleButton>
+                <ToggleButton value={PartyType.Supplier}>
+                  Supplier
+                </ToggleButton>
+              </ToggleButtonGroup>
+            </Grid>
+            <Grid item xs={12} sm={1} sx={{ display: 'flex', alignItems: 'center', height: '100%' }}>
+              <Box sx={{
+                display: 'flex',
+                alignItems: 'center',
+                height: '100%',
+                pt: 2
+              }}>
+                <IconButton
+                    color="primary"
+                    onClick={handleSaveStep}
+                    disabled={!newStep.name}
+                    sx={{
+                      border: '1px solid',
+                      borderColor: newStep.name ? 'primary.main' : 'grey.300',
+                      width: 40,
+                      height: 40,
+                      marginTop: '22px',
+                      '&.Mui-disabled': {
+                        borderColor: 'grey.300',
+                        color: 'grey.300'
+                      }
+                    }}
+                >
+                  <AddIcon />
+                </IconButton>
+                {editingStepId && (
+                    <IconButton
+                        onClick={() => {
+                          setEditingStepId(null);
+                          setNewStep({
+                            name: '',
+                            quantity: 1,
+                            payingParty: PartyType.Supplier,
+                            responsibleParty: PartyType.Supplier
+                          });
+                          setStepDescription('');
+                        }}
+                        sx={{
+                          ml: 1,
+                          marginTop: '22px'
+                        }}
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+                )}
+              </Box>
+            </Grid>
+          </Grid>
+
+          {/* Steps List */}
+          {reworkSteps.length === 0 ? (
+              <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  align="center"
+              >
+                No rework steps added. Use the form above to add steps.
               </Typography>
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                {formData.attachments.map((file, index) => (
-                  <Chip
-                    key={index}
-                    label={file.name}
-                    onDelete={() => handleRemoveFile(file)}
-                    sx={{ m: 0.5 }}
-                  />
+          ) : (
+              <Box sx={{
+                display: 'flex',
+                flexWrap: 'wrap',
+                gap: 1
+              }}>
+                {reworkSteps.map((step, index) => (
+                    <Chip
+                        key={step.id}
+                        label={`Step ${index + 1}: ${step.name} (${step.quantity}) - ${step.payingParty}/${step.responsibleParty}`}
+                        color="primary"
+                        variant="outlined"
+                        sx={{
+                          mr: 1,
+                          mb: 1,
+                          display: 'flex',
+                          alignItems: 'center',
+                        }}
+                        deleteIcon={
+                          <>
+                            <IconButton
+                                size="small"
+                                sx={{ mr: 0.5 }}
+                                onClick={() => handleEditStep(step)}
+                            >
+                              <EditIcon fontSize="small" />
+                            </IconButton>
+                            <IconButton
+                                size="small"
+                                color="error"
+                                onClick={() => handleRemoveStep(step.id)}
+                            >
+                              <DeleteIcon fontSize="small" />
+                            </IconButton>
+                          </>
+                        }
+                        onDelete={() => {}} // Placeholder to enable delete icon area
+                    />
                 ))}
               </Box>
-            </Paper>
-          </Grid>
-        )}
-      </Grid>
-    </Box>
+          )}
+        </Paper>
+
+        {/* Global Note Section */}
+        <Paper
+            variant="outlined"
+            sx={{
+              p: 2,
+              borderColor: 'divider',
+              backgroundColor: 'background.default'
+            }}
+        >
+          <Typography variant="h6" color="text.secondary" gutterBottom>
+            Global Rework Order Notes
+          </Typography>
+          <TextField
+              fullWidth
+              multiline
+              rows={4}
+              variant="outlined"
+              placeholder="Enter global notes for the entire rework order"
+              value={globalNote}
+              onChange={(e) => handleGlobalNoteChange(e.target.value)}
+          />
+        </Paper>
+      </Box>
   );
 };
 
