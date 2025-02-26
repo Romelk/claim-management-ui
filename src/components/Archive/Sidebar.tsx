@@ -12,7 +12,7 @@ import {
   IconButton,
   Collapse,
   Tooltip,
-  Badge
+  Badge,
 } from '@mui/material';
 import {
   Home as HomeIcon,
@@ -26,7 +26,7 @@ import {
   Menu as MenuIcon,
   Person as PersonIcon,
   ExpandLess,
-  ExpandMore
+  ExpandMore,
 } from '@mui/icons-material';
 
 interface SidebarProps {
@@ -45,31 +45,31 @@ interface NavItemProps {
 const NavItem: React.FC<NavItemProps> = ({ icon, text, active = false, badge, onClick }) => {
   return (
     <ListItem disablePadding>
-      <ListItemButton 
+      <ListItemButton
         onClick={onClick}
-        sx={{ 
+        sx={{
           borderRadius: 1,
           backgroundColor: active ? 'primary.light' : 'transparent',
           '&:hover': {
             backgroundColor: active ? 'primary.light' : 'action.hover',
           },
-          py: 0.5
+          py: 0.5,
         }}
       >
         <ListItemIcon sx={{ color: active ? 'primary.main' : 'inherit', minWidth: 40 }}>
           {icon}
         </ListItemIcon>
-        <ListItemText 
-          primary={text} 
-          primaryTypographyProps={{ 
+        <ListItemText
+          primary={text}
+          primaryTypographyProps={{
             variant: 'body2',
-            fontWeight: active ? 'medium' : 'regular'
-          }} 
+            fontWeight: active ? 'medium' : 'regular',
+          }}
         />
         {badge && (
-          <Badge 
-            badgeContent={badge} 
-            color={badge === 'New' ? 'success' : 'primary'} 
+          <Badge
+            badgeContent={badge}
+            color={badge === 'New' ? 'success' : 'primary'}
             sx={{ ml: 1 }}
           />
         )}
@@ -101,30 +101,40 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onToggle }) => {
         '& .MuiDrawer-paper': {
           width: open ? drawerWidth : 64,
           boxSizing: 'border-box',
-          transition: theme => theme.transitions.create(['width'], {
-            easing: theme.transitions.easing.sharp,
-            duration: theme.transitions.duration.enteringScreen,
-          }),
+          transition: (theme) =>
+            theme.transitions.create(['width'], {
+              easing: theme.transitions.easing.sharp,
+              duration: theme.transitions.duration.enteringScreen,
+            }),
           overflowX: 'hidden',
         },
       }}
       open={open}
     >
-      <Box sx={{ display: 'flex', alignItems: 'center', p: 2, justifyContent: open ? 'space-between' : 'center' }}>
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          p: 2,
+          justifyContent: open ? 'space-between' : 'center',
+        }}
+      >
         {open ? (
           <>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <Box sx={{ 
-                bgcolor: 'primary.main', 
-                color: 'white', 
-                width: 32, 
-                height: 32, 
-                borderRadius: 1, 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'center',
-                mr: 1
-              }}>
+              <Box
+                sx={{
+                  bgcolor: 'primary.main',
+                  color: 'white',
+                  width: 32,
+                  height: 32,
+                  borderRadius: 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  mr: 1,
+                }}
+              >
                 <DescriptionIcon fontSize="small" />
               </Box>
               <Typography variant="subtitle1" fontWeight="bold">
@@ -149,11 +159,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onToggle }) => {
 
         {open ? (
           <ListItem sx={{ pt: 2, pb: 0.5 }}>
-            <ListItemButton 
-              onClick={handleClaimToggle} 
-              sx={{ p: 0 }}
-              disableRipple
-            >
+            <ListItemButton onClick={handleClaimToggle} sx={{ p: 0 }} disableRipple>
               <Typography variant="caption" color="text.secondary" fontWeight="bold">
                 CLAIM
               </Typography>
@@ -176,7 +182,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onToggle }) => {
             {open && (
               <NavItem icon={<DescriptionIcon />} text="Stock Item Claims" active badge="3" />
             )}
-            
+
             {!open && (
               <Tooltip title="Non Stock Item Claims" placement="right">
                 <Box>
@@ -184,19 +190,13 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onToggle }) => {
                 </Box>
               </Tooltip>
             )}
-            {open && (
-              <NavItem icon={<InventoryIcon />} text="Non Stock Item Claims" />
-            )}
+            {open && <NavItem icon={<InventoryIcon />} text="Non Stock Item Claims" />}
           </List>
         </Collapse>
 
         {open ? (
           <ListItem sx={{ pt: 2, pb: 0.5 }}>
-            <ListItemButton 
-              onClick={handleReworkToggle} 
-              sx={{ p: 0 }}
-              disableRipple
-            >
+            <ListItemButton onClick={handleReworkToggle} sx={{ p: 0 }} disableRipple>
               <Typography variant="caption" color="text.secondary" fontWeight="bold">
                 REWORK
               </Typography>
@@ -216,10 +216,8 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onToggle }) => {
                 </Box>
               </Tooltip>
             )}
-            {open && (
-              <NavItem icon={<RefreshIcon />} text="Rework Orders" />
-            )}
-            
+            {open && <NavItem icon={<RefreshIcon />} text="Rework Orders" />}
+
             {!open && (
               <Tooltip title="Rules for Planned Rework" placement="right">
                 <Box>
@@ -246,10 +244,8 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onToggle }) => {
             </Box>
           </Tooltip>
         )}
-        {open && (
-          <NavItem icon={<HelpIcon />} text="Help & Resources" />
-        )}
-        
+        {open && <NavItem icon={<HelpIcon />} text="Help & Resources" />}
+
         {!open && (
           <Tooltip title="Profile" placement="right">
             <Box>
@@ -257,10 +253,8 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onToggle }) => {
             </Box>
           </Tooltip>
         )}
-        {open && (
-          <NavItem icon={<PersonIcon />} text="Profile" />
-        )}
-        
+        {open && <NavItem icon={<PersonIcon />} text="Profile" />}
+
         {!open && (
           <Tooltip title="Logout" placement="right">
             <Box>
@@ -268,9 +262,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onToggle }) => {
             </Box>
           </Tooltip>
         )}
-        {open && (
-          <NavItem icon={<LogoutIcon color="error" />} text="Logout" />
-        )}
+        {open && <NavItem icon={<LogoutIcon color="error" />} text="Logout" />}
       </List>
     </Drawer>
   );

@@ -1,7 +1,12 @@
 // Define common types used across the application
 
 // Main content view types
-export type MainContentView = 'ordered-actions' | 'linkable-claims' | 'sku-list' | 'history' | 'downloads';
+export type MainContentView =
+  | 'ordered-actions'
+  | 'linkable-claims'
+  | 'sku-list'
+  | 'history'
+  | 'downloads';
 
 // Information panel types
 export type InfoPanelType = 'product' | 'document' | 'invoice' | 'delivery' | 'inspection';

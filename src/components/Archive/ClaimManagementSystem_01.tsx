@@ -16,15 +16,15 @@ const ClaimManagementSystem: React.FC = () => {
   return (
     <Box sx={{ display: 'flex' }}>
       <Sidebar open={sidebarOpen} onToggle={handleSidebarToggle} />
-      
-      <Box 
-        component="main" 
-        sx={{ 
-          flexGrow: 1, 
-          display: 'flex', 
-          flexDirection: 'column', 
+
+      <Box
+        component="main"
+        sx={{
+          flexGrow: 1,
+          display: 'flex',
+          flexDirection: 'column',
           height: '100vh',
-          overflow: 'hidden'
+          overflow: 'hidden',
         }}
       >
         <ClaimHeader />
@@ -40,4 +40,3 @@ const ClaimManagementSystem: React.FC = () => {
 };
 
 export default ClaimManagementSystem;
-

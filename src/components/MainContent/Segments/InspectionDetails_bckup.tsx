@@ -1,8 +1,8 @@
 // src/components/MainContent/Segments/InspectionDetails.tsx
 import React, { useState } from 'react';
-import { 
-  Box, 
-  Typography, 
+import {
+  Box,
+  Typography,
   Accordion,
   AccordionSummary,
   AccordionDetails,
@@ -23,7 +23,7 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  Tooltip
+  Tooltip,
 } from '@mui/material';
 import {
   ExpandMore as ExpandMoreIcon,
@@ -31,7 +31,7 @@ import {
   Save as SaveIcon,
   Cancel as CancelIcon,
   Add as AddIcon,
-  Delete as DeleteIcon
+  Delete as DeleteIcon,
 } from '@mui/icons-material';
 
 // Sample data
@@ -39,24 +39,19 @@ const initialInspectionData = {
   summary: {
     totalDelivery: 300,
     sampleSize: 8,
-    inspectedItems: 10
+    inspectedItems: 10,
   },
-  defects: [
-    "Manufacturer labelling (type designation / care label)",
-    "Foreign brand"
-  ],
-  faultCodes: [
-    { code: "1630 (Q)", description: "Manufacturer's marking missing" }
-  ],
-  notes: ["Fault in markings"]
+  defects: ['Manufacturer labelling (type designation / care label)', 'Foreign brand'],
+  faultCodes: [{ code: '1630 (Q)', description: "Manufacturer's marking missing" }],
+  notes: ['Fault in markings'],
 };
 
 const availableFaultCodes = [
-  { code: "1630 (Q)", description: "Manufacturer's marking missing" },
-  { code: "1631 (Q)", description: "Manufacturer's marking incomplete" },
-  { code: "1632 (Q)", description: "Manufacturer's marking incorrect" },
-  { code: "1750 (Q)", description: "Foreign brand identification" },
-  { code: "2100 (Q)", description: "Missing care label" }
+  { code: '1630 (Q)', description: "Manufacturer's marking missing" },
+  { code: '1631 (Q)', description: "Manufacturer's marking incomplete" },
+  { code: '1632 (Q)', description: "Manufacturer's marking incorrect" },
+  { code: '1750 (Q)', description: 'Foreign brand identification' },
+  { code: '2100 (Q)', description: 'Missing care label' },
 ];
 
 const InspectionDetails = () => {
@@ -71,7 +66,7 @@ const InspectionDetails = () => {
   const handleEditStart = (section: string) => {
     setEditing(section);
     if (section === 'summary') {
-      setTempValues({...inspectionData.summary});
+      setTempValues({ ...inspectionData.summary });
     }
   };
 
@@ -80,7 +75,7 @@ const InspectionDetails = () => {
     if (editing === 'summary') {
       setInspectionData({
         ...inspectionData,
-        summary: {...tempValues}
+        summary: { ...tempValues },
       });
     }
     setEditing(null);
@@ -97,7 +92,7 @@ const InspectionDetails = () => {
   const handleTempValueChange = (field: string, value: any) => {
     setTempValues({
       ...tempValues,
-      [field]: value
+      [field]: value,
     });
   };
 
@@ -120,19 +115,19 @@ const InspectionDetails = () => {
     if (openDialog === 'defect' && newValue.trim()) {
       setInspectionData({
         ...inspectionData,
-        defects: [...inspectionData.defects, newValue.trim()]
+        defects: [...inspectionData.defects, newValue.trim()],
       });
     } else if (openDialog === 'note' && newValue.trim()) {
       setInspectionData({
         ...inspectionData,
-        notes: [...inspectionData.notes, newValue.trim()]
+        notes: [...inspectionData.notes, newValue.trim()],
       });
     } else if (openDialog === 'faultCode' && newFaultCode) {
-      const selectedFault = availableFaultCodes.find(fc => fc.code === newFaultCode);
+      const selectedFault = availableFaultCodes.find((fc) => fc.code === newFaultCode);
       if (selectedFault) {
         setInspectionData({
           ...inspectionData,
-          faultCodes: [...inspectionData.faultCodes, selectedFault]
+          faultCodes: [...inspectionData.faultCodes, selectedFault],
         });
       }
     }
@@ -146,28 +141,37 @@ const InspectionDetails = () => {
       updatedDefects.splice(index, 1);
       setInspectionData({
         ...inspectionData,
-        defects: updatedDefects
+        defects: updatedDefects,
       });
     } else if (type === 'note') {
       const updatedNotes = [...inspectionData.notes];
       updatedNotes.splice(index, 1);
       setInspectionData({
         ...inspectionData,
-        notes: updatedNotes
+        notes: updatedNotes,
       });
     } else if (type === 'faultCode') {
       const updatedFaultCodes = [...inspectionData.faultCodes];
       updatedFaultCodes.splice(index, 1);
       setInspectionData({
         ...inspectionData,
-        faultCodes: updatedFaultCodes
+        faultCodes: updatedFaultCodes,
       });
     }
   };
 
   return (
     <>
-      <Box sx={{ p: 2, borderBottom: '1px solid', borderColor: 'divider', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <Box
+        sx={{
+          p: 2,
+          borderBottom: '1px solid',
+          borderColor: 'divider',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+        }}
+      >
         <Typography variant="subtitle1" fontWeight="medium">
           Inspection Details
         </Typography>
@@ -194,7 +198,7 @@ const InspectionDetails = () => {
           <Typography variant="body2" color="text.secondary" gutterBottom>
             Summary
           </Typography>
-          
+
           <Table size="small">
             <TableBody>
               <TableRow>
@@ -208,7 +212,9 @@ const InspectionDetails = () => {
                       size="small"
                       type="number"
                       value={tempValues.totalDelivery}
-                      onChange={(e) => handleTempValueChange('totalDelivery', parseInt(e.target.value) || 0)}
+                      onChange={(e) =>
+                        handleTempValueChange('totalDelivery', parseInt(e.target.value) || 0)
+                      }
                       sx={{ width: 80 }}
                     />
                   ) : (
@@ -229,7 +235,9 @@ const InspectionDetails = () => {
                       size="small"
                       type="number"
                       value={tempValues.sampleSize}
-                      onChange={(e) => handleTempValueChange('sampleSize', parseInt(e.target.value) || 0)}
+                      onChange={(e) =>
+                        handleTempValueChange('sampleSize', parseInt(e.target.value) || 0)
+                      }
                       sx={{ width: 80 }}
                     />
                   ) : (
@@ -250,7 +258,9 @@ const InspectionDetails = () => {
                       size="small"
                       type="number"
                       value={tempValues.inspectedItems}
-                      onChange={(e) => handleTempValueChange('inspectedItems', parseInt(e.target.value) || 0)}
+                      onChange={(e) =>
+                        handleTempValueChange('inspectedItems', parseInt(e.target.value) || 0)
+                      }
                       sx={{ width: 80 }}
                     />
                   ) : (
@@ -263,10 +273,10 @@ const InspectionDetails = () => {
             </TableBody>
           </Table>
         </Box>
-        
+
         {/* Inspection Issues Accordion */}
         <Accordion defaultExpanded disableGutters elevation={0}>
-          <AccordionSummary 
+          <AccordionSummary
             expandIcon={<ExpandMoreIcon />}
             sx={{ px: 2, borderBottom: '1px solid', borderColor: 'divider' }}
           >
@@ -277,27 +287,42 @@ const InspectionDetails = () => {
           <AccordionDetails sx={{ p: 0 }}>
             {/* Defects */}
             <Box sx={{ p: 2, borderBottom: '1px solid', borderColor: 'divider' }}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  mb: 1,
+                }}
+              >
                 <Typography variant="body2" color="text.secondary">
                   Defects
                 </Typography>
-                <Button 
-                  startIcon={<AddIcon />} 
-                  size="small" 
+                <Button
+                  startIcon={<AddIcon />}
+                  size="small"
                   onClick={() => handleAddDialogOpen('defect')}
                 >
                   Add
                 </Button>
               </Box>
-              
+
               {inspectionData.defects.length > 0 ? (
                 inspectionData.defects.map((defect, index) => (
-                  <Box key={index} sx={{ mb: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Box
+                    key={index}
+                    sx={{
+                      mb: 1,
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                    }}
+                  >
                     <Typography variant="body2" sx={{ flex: 1 }}>
                       {defect}
                     </Typography>
-                    <IconButton 
-                      size="small" 
+                    <IconButton
+                      size="small"
                       color="error"
                       onClick={() => handleDeleteItem('defect', index)}
                     >
@@ -311,35 +336,48 @@ const InspectionDetails = () => {
                 </Typography>
               )}
             </Box>
-            
+
             {/* Fault Codes */}
             <Box sx={{ p: 2, borderBottom: '1px solid', borderColor: 'divider' }}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  mb: 1,
+                }}
+              >
                 <Typography variant="body2" color="text.secondary">
                   Fault codes
                 </Typography>
-                <Button 
-                  startIcon={<AddIcon />} 
+                <Button
+                  startIcon={<AddIcon />}
                   size="small"
                   onClick={() => handleAddDialogOpen('faultCode')}
                 >
                   Add
                 </Button>
               </Box>
-              
+
               {inspectionData.faultCodes.length > 0 ? (
                 inspectionData.faultCodes.map((fault, index) => (
-                  <Box key={index} sx={{ mb: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <Box
+                    key={index}
+                    sx={{
+                      mb: 1,
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'flex-start',
+                    }}
+                  >
                     <Box>
                       <Typography variant="body2" fontWeight="medium">
                         {fault.code}
                       </Typography>
-                      <Typography variant="body2">
-                        {fault.description}
-                      </Typography>
+                      <Typography variant="body2">{fault.description}</Typography>
                     </Box>
-                    <IconButton 
-                      size="small" 
+                    <IconButton
+                      size="small"
                       color="error"
                       onClick={() => handleDeleteItem('faultCode', index)}
                     >
@@ -353,30 +391,45 @@ const InspectionDetails = () => {
                 </Typography>
               )}
             </Box>
-            
+
             {/* Notes */}
             <Box sx={{ p: 2 }}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  mb: 1,
+                }}
+              >
                 <Typography variant="body2" color="text.secondary">
                   Notes
                 </Typography>
-                <Button 
-                  startIcon={<AddIcon />} 
+                <Button
+                  startIcon={<AddIcon />}
                   size="small"
                   onClick={() => handleAddDialogOpen('note')}
                 >
                   Add
                 </Button>
               </Box>
-              
+
               {inspectionData.notes.length > 0 ? (
                 inspectionData.notes.map((note, index) => (
-                  <Box key={index} sx={{ mb: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Box
+                    key={index}
+                    sx={{
+                      mb: 1,
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                    }}
+                  >
                     <Typography variant="body2" sx={{ flex: 1 }}>
                       {note}
                     </Typography>
-                    <IconButton 
-                      size="small" 
+                    <IconButton
+                      size="small"
                       color="error"
                       onClick={() => handleDeleteItem('note', index)}
                     >
@@ -411,11 +464,7 @@ const InspectionDetails = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={handleAddDialogClose}>Cancel</Button>
-          <Button 
-            onClick={handleAddItem} 
-            variant="contained" 
-            disabled={!newValue.trim()}
-          >
+          <Button onClick={handleAddItem} variant="contained" disabled={!newValue.trim()}>
             Add
           </Button>
         </DialogActions>
@@ -438,11 +487,7 @@ const InspectionDetails = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={handleAddDialogClose}>Cancel</Button>
-          <Button 
-            onClick={handleAddItem} 
-            variant="contained" 
-            disabled={!newValue.trim()}
-          >
+          <Button onClick={handleAddItem} variant="contained" disabled={!newValue.trim()}>
             Add
           </Button>
         </DialogActions>
@@ -470,11 +515,7 @@ const InspectionDetails = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={handleAddDialogClose}>Cancel</Button>
-          <Button 
-            onClick={handleAddItem} 
-            variant="contained" 
-            disabled={!newFaultCode}
-          >
+          <Button onClick={handleAddItem} variant="contained" disabled={!newFaultCode}>
             Add
           </Button>
         </DialogActions>

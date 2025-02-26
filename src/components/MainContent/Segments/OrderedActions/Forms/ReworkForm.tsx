@@ -1,10 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   Box,
   Typography,
   TextField,
   FormControl,
-  InputLabel,
   Select,
   MenuItem,
   Grid,
@@ -17,65 +16,23 @@ import {
 import {
   Add as AddIcon,
   Delete as DeleteIcon,
-  Edit as EditIcon
+  Edit as EditIcon,
+  AttachMoney as CostIcon
 } from '@mui/icons-material';
 
-// Enum for party types
-enum PartyType {
-  Partner = 'Partner',
-  Supplier = 'Supplier'
-}
-
-// Step definition with description
-interface StepDefinition {
-  name: string;
-  description: string;
-}
-
-// Predefined step names with descriptions
-const StepNames: StepDefinition[] = [
-  {
-    name: 'Initial Assessment',
-    description: 'Conduct a comprehensive initial evaluation of the item to identify primary issues and determine the scope of rework needed.'
-  },
-  {
-    name: 'Detailed Inspection',
-    description: 'Perform an in-depth, systematic examination to uncover all potential defects, damages, or areas requiring specific attention.'
-  },
-  {
-    name: 'Component Replacement',
-    description: 'Identify and replace worn-out, damaged, or malfunctioning components with new or refurbished parts to restore functionality.'
-  },
-  {
-    name: 'Recalibration',
-    description: 'Adjust and fine-tune the item to ensure it meets original manufacturer specifications and optimal performance standards.'
-  },
-  {
-    name: 'Final Quality Check',
-    description: 'Conduct a comprehensive final inspection to verify that all rework meets quality standards and the item functions as expected.'
-  }
-];
-
-// Interface for a single rework step
-interface ReworkStep {
-  id: string;
-  name: string;
-  quantity: number;
-  payingParty: PartyType;
-  responsibleParty: PartyType;
-}
-
-// Interface for the form data
-interface ReworkFormData {
-  globalNote: string;
-  reworkSteps: ReworkStep[];
-}
-
-// Interface for the form props
-interface ReworkFormProps {
-  onFormChange: (data: ReworkFormData) => void;
-  initialData?: Partial<ReworkFormData>;
-}
+// Import modular types and definitions
+import {
+  PartyType,
+  ReworkStep,
+  ReworkFormData,
+  ReworkFormProps
+} from './rework-types';
+import { StepNames } from './rework-step-definitions';
+import {
+  calculateTotalCost,
+  calculateStepCost,
+  formatCurrency
+} from './rework-cost-utils';
 
 const ReworkForm: React.FC<ReworkFormProps> = ({ onFormChange, initialData = {} }) => {
   // State for steps
@@ -100,12 +57,16 @@ const ReworkForm: React.FC<ReworkFormProps> = ({ onFormChange, initialData = {} 
   // State for global note
   const [globalNote, setGlobalNote] = useState(initialData.globalNote || '');
 
+  // Calculate total cost
+  const totalCost = useMemo(() => calculateTotalCost(reworkSteps), [reworkSteps]);
+
   // Handle global note change
   const handleGlobalNoteChange = (note: string) => {
     setGlobalNote(note);
     onFormChange({
       globalNote: note,
-      reworkSteps
+      reworkSteps,
+      totalCost
     });
   };
 
@@ -114,9 +75,24 @@ const ReworkForm: React.FC<ReworkFormProps> = ({ onFormChange, initialData = {} 
     const selectedStep = StepNames.find(step => step.name === stepName);
     setNewStep(prev => ({
       ...prev,
-      name: stepName
+      name: stepName,
+      stepCost: selectedStep
+          ? calculateStepCost(selectedStep.baseCost, prev.quantity || 1)
+          : 0
     }));
     setStepDescription(selectedStep ? selectedStep.description : '');
+  };
+
+  // Handle quantity change with cost calculation
+  const handleQuantityChange = (quantity: number) => {
+    const selectedStep = StepNames.find(step => step.name === newStep.name);
+    setNewStep(prev => ({
+      ...prev,
+      quantity,
+      stepCost: selectedStep
+          ? calculateStepCost(selectedStep.baseCost, quantity)
+          : 0
+    }));
   };
 
   // Add or update a step
@@ -133,13 +109,18 @@ const ReworkForm: React.FC<ReworkFormProps> = ({ onFormChange, initialData = {} 
                 name: newStep.name!,
                 quantity: newStep.quantity!,
                 payingParty: newStep.payingParty!,
-                responsibleParty: newStep.responsibleParty!
+                responsibleParty: newStep.responsibleParty!,
+                stepCost: newStep.stepCost!
               }
               : step
       );
 
       setReworkSteps(updatedSteps);
-      onFormChange({ globalNote, reworkSteps: updatedSteps });
+      onFormChange({
+        globalNote,
+        reworkSteps: updatedSteps,
+        totalCost: calculateTotalCost(updatedSteps)
+      });
 
       // Reset editing state
       setEditingStepId(null);
@@ -150,12 +131,17 @@ const ReworkForm: React.FC<ReworkFormProps> = ({ onFormChange, initialData = {} 
         name: newStep.name!,
         quantity: newStep.quantity!,
         payingParty: newStep.payingParty!,
-        responsibleParty: newStep.responsibleParty!
+        responsibleParty: newStep.responsibleParty!,
+        stepCost: newStep.stepCost!
       };
 
       const updatedSteps = [...reworkSteps, stepToAdd];
       setReworkSteps(updatedSteps);
-      onFormChange({ globalNote, reworkSteps: updatedSteps });
+      onFormChange({
+        globalNote,
+        reworkSteps: updatedSteps,
+        totalCost: calculateTotalCost(updatedSteps)
+      });
     }
 
     // Reset new step form
@@ -177,7 +163,8 @@ const ReworkForm: React.FC<ReworkFormProps> = ({ onFormChange, initialData = {} 
       name: step.name,
       quantity: step.quantity,
       payingParty: step.payingParty,
-      responsibleParty: step.responsibleParty
+      responsibleParty: step.responsibleParty,
+      stepCost: step.stepCost
     });
 
     // Set description for editing step
@@ -193,12 +180,38 @@ const ReworkForm: React.FC<ReworkFormProps> = ({ onFormChange, initialData = {} 
     // Notify parent component
     onFormChange({
       globalNote,
-      reworkSteps: updatedSteps
+      reworkSteps: updatedSteps,
+      totalCost: calculateTotalCost(updatedSteps)
     });
   };
 
   return (
       <Box>
+        {/* Cost Summary */}
+        <Paper
+            variant="outlined"
+            sx={{
+              p: 2,
+              mb: 3,
+              borderColor: 'primary.main',
+              backgroundColor: 'primary.light',
+              color: 'primary.contrastText',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between'
+            }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <CostIcon sx={{ mr: 2 }} />
+            <Typography variant="h6">
+              Total Rework Order Cost
+            </Typography>
+          </Box>
+          <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
+            {formatCurrency(totalCost)}
+          </Typography>
+        </Paper>
+
         {/* Steps Section */}
         <Paper
             variant="outlined"
@@ -259,16 +272,28 @@ const ReworkForm: React.FC<ReworkFormProps> = ({ onFormChange, initialData = {} 
                   variant="outlined"
                   size="small"
                   value={newStep.quantity}
-                  onChange={(e) => setNewStep(prev => ({
-                    ...prev,
-                    quantity: parseInt(e.target.value) || 1
-                  }))}
+                  onChange={(e) => handleQuantityChange(parseInt(e.target.value) || 1)}
                   InputProps={{
                     inputProps: { min: 1 }
                   }}
               />
             </Grid>
-            <Grid item xs={12} sm={3}>
+            <Grid item xs={12} sm={2}>
+              <Typography variant="body2" sx={{ mb: 1 }}>Step Cost</Typography>
+              <TextField
+                  fullWidth
+                  type="number"
+                  variant="outlined"
+                  size="small"
+                  value={newStep.stepCost || 0}
+                  InputProps={{
+                    readOnly: true,
+                    startAdornment: '€',
+                    inputProps: { min: 0 }
+                  }}
+              />
+            </Grid>
+            <Grid item xs={12} sm={2}>
               <Typography variant="body2" sx={{ mb: 1 }}>Paying Party</Typography>
               <ToggleButtonGroup
                   color="primary"
@@ -299,7 +324,7 @@ const ReworkForm: React.FC<ReworkFormProps> = ({ onFormChange, initialData = {} 
                 </ToggleButton>
               </ToggleButtonGroup>
             </Grid>
-            <Grid item xs={12} sm={3}>
+            <Grid item xs={12} sm={2}>
               <Typography variant="body2" sx={{ mb: 1 }}>Responsible Party</Typography>
               <ToggleButtonGroup
                   color="primary"
@@ -397,7 +422,7 @@ const ReworkForm: React.FC<ReworkFormProps> = ({ onFormChange, initialData = {} 
                 {reworkSteps.map((step, index) => (
                     <Chip
                         key={step.id}
-                        label={`Step ${index + 1}: ${step.name} (${step.quantity}) - ${step.payingParty}/${step.responsibleParty}`}
+                        label={`Step ${index + 1}: ${step.name} (${step.quantity}) - ${step.payingParty}/${step.responsibleParty} - ${formatCurrency(step.stepCost)}`}
                         color="primary"
                         variant="outlined"
                         sx={{

@@ -1,18 +1,18 @@
 // src/components/MainContent/Segments/Panels/DocumentPanel.tsx
 import React, { useState } from 'react';
-import { 
-  Box, 
-  Typography, 
-  IconButton, 
+import {
+  Box,
+  Typography,
+  IconButton,
   Button,
   Dialog,
   DialogTitle,
   DialogContent,
   Divider,
   Chip,
-  CircularProgress
+  CircularProgress,
 } from '@mui/material';
-import { 
+import {
   Close as CloseIcon,
   Description as DocumentIcon,
   Visibility as VisibilityIcon,
@@ -22,7 +22,7 @@ import {
   PictureAsPdf as PdfIcon,
   Description as DocIcon,
   Archive as ZipIcon,
-  Delete as DeleteIcon
+  Delete as DeleteIcon,
 } from '@mui/icons-material';
 
 // Import our claim context
@@ -38,19 +38,14 @@ const DocumentPanel: React.FC<DocumentPanelProps> = ({ open, onClose }) => {
   const [uploading, setUploading] = useState(false);
 
   // Use our claim context
-  const { 
-    documents, 
-    addDocument, 
-    removeDocument, 
-    showNotification,
-    setIsLoading
-  } = useClaimContext();
+  const { documents, addDocument, removeDocument, showNotification, setIsLoading } =
+    useClaimContext();
 
   // Simulate a document upload
   const handleUpload = () => {
     setUploading(true);
     setIsLoading(true);
-    
+
     // Simulate network delay
     setTimeout(() => {
       const newDocument: Document = {
@@ -58,9 +53,9 @@ const DocumentPanel: React.FC<DocumentPanelProps> = ({ open, onClose }) => {
         name: `New Document-${Math.floor(Math.random() * 1000)}.pdf`,
         type: 'PDF',
         date: '25 Feb 2025',
-        size: '856 KB'
+        size: '856 KB',
       };
-      
+
       addDocument(newDocument);
       setUploading(false);
       setIsLoading(false);
@@ -71,7 +66,7 @@ const DocumentPanel: React.FC<DocumentPanelProps> = ({ open, onClose }) => {
   // Simulate a document download
   const handleDownload = (documentName: string) => {
     setIsLoading(true);
-    
+
     // Simulate network delay
     setTimeout(() => {
       setIsLoading(false);
@@ -92,7 +87,7 @@ const DocumentPanel: React.FC<DocumentPanelProps> = ({ open, onClose }) => {
 
   // Get icon based on document type
   const getDocumentIcon = (type: string) => {
-    switch(type) {
+    switch (type) {
       case 'PDF':
         return <PdfIcon sx={{ mr: 1.5, color: '#f44336' }} />;
       case 'DOCX':
@@ -116,39 +111,37 @@ const DocumentPanel: React.FC<DocumentPanelProps> = ({ open, onClose }) => {
           bgcolor: 'background.paper',
           boxShadow: 3,
           height: 'auto',
-          maxHeight: '80vh'
-        }
+          maxHeight: '80vh',
+        },
       }}
     >
-      <DialogTitle sx={{ 
-        display: 'flex', 
-        alignItems: 'center', 
-        p: 3,
-        pb: 2
-      }}>
-        <DocumentIcon 
-          sx={{ 
-            color: '#1976d2', 
-            mr: 1.5, 
-            fontSize: 28 
-          }} 
-        />
-        <Typography 
-          variant="h6" 
-          component="div" 
-          sx={{ 
-            fontWeight: 'medium', 
+      <DialogTitle
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          p: 3,
+          pb: 2,
+        }}
+      >
+        <DocumentIcon
+          sx={{
             color: '#1976d2',
-            flexGrow: 1
+            mr: 1.5,
+            fontSize: 28,
+          }}
+        />
+        <Typography
+          variant="h6"
+          component="div"
+          sx={{
+            fontWeight: 'medium',
+            color: '#1976d2',
+            flexGrow: 1,
           }}
         >
           DOCUMENTS
         </Typography>
-        <IconButton 
-          edge="end" 
-          onClick={onClose}
-          aria-label="close"
-        >
+        <IconButton edge="end" onClick={onClose} aria-label="close">
           <CloseIcon />
         </IconButton>
       </DialogTitle>
@@ -163,12 +156,14 @@ const DocumentPanel: React.FC<DocumentPanelProps> = ({ open, onClose }) => {
         {/* Document List */}
         <Box sx={{ mb: 3 }}>
           {documents.length === 0 ? (
-            <Box sx={{ 
-              p: 3, 
-              textAlign: 'center', 
-              bgcolor: 'action.hover',
-              borderRadius: 1
-            }}>
+            <Box
+              sx={{
+                p: 3,
+                textAlign: 'center',
+                bgcolor: 'action.hover',
+                borderRadius: 1,
+              }}
+            >
               <Typography color="text.secondary">
                 No documents available. Upload a document to get started.
               </Typography>
@@ -186,8 +181,8 @@ const DocumentPanel: React.FC<DocumentPanelProps> = ({ open, onClose }) => {
                   transition: 'all 0.2s ease',
                   '&:hover': {
                     borderColor: 'primary.main',
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.08)'
-                  }
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                  },
                 }}
               >
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
@@ -196,47 +191,49 @@ const DocumentPanel: React.FC<DocumentPanelProps> = ({ open, onClose }) => {
                     {document.name}
                   </Typography>
                 </Box>
-                
-                <Box sx={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'space-between',
-                  mt: 1.5
-                }}>
+
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    mt: 1.5,
+                  }}
+                >
                   <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    <Chip 
-                      label={document.type} 
-                      size="small" 
-                      sx={{ 
+                    <Chip
+                      label={document.type}
+                      size="small"
+                      sx={{
                         borderRadius: 1,
                         bgcolor: 'action.hover',
                         color: 'text.primary',
                         fontWeight: 'medium',
-                        mr: 1.5
-                      }} 
+                        mr: 1.5,
+                      }}
                     />
                     <Typography variant="body2" color="text.secondary">
                       {document.size}
                     </Typography>
                   </Box>
-                  
+
                   <Box>
-                    <IconButton 
-                      size="small" 
+                    <IconButton
+                      size="small"
                       aria-label="view"
                       onClick={() => handlePreview(document.name)}
                     >
                       <VisibilityIcon fontSize="small" />
                     </IconButton>
-                    <IconButton 
-                      size="small" 
+                    <IconButton
+                      size="small"
                       aria-label="download"
                       onClick={() => handleDownload(document.name)}
                     >
                       <DownloadIcon fontSize="small" />
                     </IconButton>
-                    <IconButton 
-                      size="small" 
+                    <IconButton
+                      size="small"
                       color="error"
                       aria-label="delete"
                       onClick={() => handleDelete(document.id, document.name)}
@@ -245,7 +242,7 @@ const DocumentPanel: React.FC<DocumentPanelProps> = ({ open, onClose }) => {
                     </IconButton>
                   </Box>
                 </Box>
-                
+
                 <Typography variant="body2" color="text.secondary" sx={{ mt: 1.5 }}>
                   Uploaded: {document.date}
                 </Typography>
@@ -255,19 +252,19 @@ const DocumentPanel: React.FC<DocumentPanelProps> = ({ open, onClose }) => {
         </Box>
 
         {/* Upload Button */}
-        <Button 
-          variant="contained" 
+        <Button
+          variant="contained"
           startIcon={uploading ? <CircularProgress size={20} color="inherit" /> : <AddIcon />}
           fullWidth
           size="large"
           disabled={uploading}
           onClick={handleUpload}
-          sx={{ 
+          sx={{
             py: 1.5,
             bgcolor: uploadHover ? 'primary.dark' : 'primary.main',
             '&:hover': { bgcolor: 'primary.dark' },
             transition: 'background-color 0.3s',
-            borderRadius: 1
+            borderRadius: 1,
           }}
           onMouseEnter={() => setUploadHover(true)}
           onMouseLeave={() => setUploadHover(false)}

@@ -19,11 +19,7 @@ const TabPanel = (props: TabPanelProps) => {
       aria-labelledby={`claim-tab-${index}`}
       {...other}
     >
-      {value === index && (
-        <Box sx={{ p: 3 }}>
-          {children}
-        </Box>
-      )}
+      {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
     </div>
   );
 };
@@ -38,8 +34,8 @@ const ContentTabs = () => {
   return (
     <Card sx={{ mt: 2 }}>
       <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-        <Tabs 
-          value={value} 
+        <Tabs
+          value={value}
           onChange={handleChange}
           aria-label="claim content tabs"
           sx={{
@@ -50,7 +46,7 @@ const ContentTabs = () => {
             },
             '& .Mui-selected': {
               fontWeight: 'bold',
-            }
+            },
           }}
         >
           <Tab label="Inspection Details" />

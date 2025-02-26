@@ -4,11 +4,7 @@ import DeliveryDetailsDrawer from './DeliveryDetailsDrawer';
 import LinkedClaimsDrawer from './LinkedClaimsDrawer';
 
 // Export components to make them available for other files
-export {
-    ProductDetailsDrawer,
-    DeliveryDetailsDrawer,
-    LinkedClaimsDrawer
-};
+export { ProductDetailsDrawer, DeliveryDetailsDrawer, LinkedClaimsDrawer };
 
 // Export a default component if there's a main one
 export default ProductDetailsDrawer;

@@ -13,7 +13,7 @@ import {
   ImageList,
   ImageListItem,
   Dialog,
-  DialogContent
+  DialogContent,
 } from '@mui/material';
 import { ExpandMore as ExpandMoreIcon } from '@mui/icons-material';
 
@@ -21,30 +21,30 @@ import { ExpandMore as ExpandMoreIcon } from '@mui/icons-material';
 const inspectionSummary = {
   totalDelivery: 300,
   sampleSize: 8,
-  inspectedItems: 10
+  inspectedItems: 10,
 };
 
 const inspectionIssues = [
   {
-    stepName: "Manufacturer Label Inspection",
-    faultCode: "1630 (Q)",
+    stepName: 'Manufacturer Label Inspection',
+    faultCode: '1630 (Q)',
     impactedItems: 5,
     notes: "Manufacturer's marking missing",
     images: [
-      { src: "/images/inspection1.jpg", alt: "Inspection Image 1" },
-      { src: "/images/inspection2.jpg", alt: "Inspection Image 2" }
-    ]
+      { src: '/images/inspection1.jpg', alt: 'Inspection Image 1' },
+      { src: '/images/inspection2.jpg', alt: 'Inspection Image 2' },
+    ],
   },
   {
-    stepName: "Brand Compliance Check",
-    faultCode: "1750 (Q)",
+    stepName: 'Brand Compliance Check',
+    faultCode: '1750 (Q)',
     impactedItems: 3,
-    notes: "Foreign brand identification found",
+    notes: 'Foreign brand identification found',
     images: [
-      { src: "/images/inspection3.jpg", alt: "Inspection Image 3" },
-      { src: "/images/inspection4.jpg", alt: "Inspection Image 4" }
-    ]
-  }
+      { src: '/images/inspection3.jpg', alt: 'Inspection Image 3' },
+      { src: '/images/inspection4.jpg', alt: 'Inspection Image 4' },
+    ],
+  },
 ];
 
 const InspectionDetails = () => {
@@ -98,15 +98,15 @@ const InspectionDetails = () => {
           </TableBody>
         </Table>
       </Box>
-      
+
       {/* Issues Section */}
       <Typography variant="subtitle2" color="text.secondary" gutterBottom sx={{ mt: 2 }}>
         Inspection Issues
       </Typography>
-      
+
       {inspectionIssues.map((issue, index) => (
         <Accordion key={index} defaultExpanded={index === 0} disableGutters elevation={0}>
-          <AccordionSummary 
+          <AccordionSummary
             expandIcon={<ExpandMoreIcon />}
             sx={{ px: 1, py: 0.5, minHeight: 'unset' }}
           >
@@ -155,18 +155,21 @@ const InspectionDetails = () => {
                       </Typography>
                       <ImageList cols={2} gap={4}>
                         {issue.images.map((image, imgIndex) => (
-                          <ImageListItem key={imgIndex} onClick={() => handleImageClick(issue.images)}>
-                            <img 
-                              src={image.src} 
-                              alt={image.alt} 
-                              loading="lazy" 
-                              style={{ 
-                                cursor: 'pointer', 
-                                width: '100%', 
-                                height: '80px', 
+                          <ImageListItem
+                            key={imgIndex}
+                            onClick={() => handleImageClick(issue.images)}
+                          >
+                            <img
+                              src={image.src}
+                              alt={image.alt}
+                              loading="lazy"
+                              style={{
+                                cursor: 'pointer',
+                                width: '100%',
+                                height: '80px',
                                 objectFit: 'cover',
-                                borderRadius: '4px'
-                              }} 
+                                borderRadius: '4px',
+                              }}
                             />
                           </ImageListItem>
                         ))}
@@ -186,7 +189,12 @@ const InspectionDetails = () => {
           <ImageList cols={1} gap={0}>
             {selectedImages.map((image, index) => (
               <ImageListItem key={index}>
-                <img src={image.src} alt={image.alt} loading="lazy" style={{ width: '100%', height: 'auto' }} />
+                <img
+                  src={image.src}
+                  alt={image.alt}
+                  loading="lazy"
+                  style={{ width: '100%', height: 'auto' }}
+                />
               </ImageListItem>
             ))}
           </ImageList>

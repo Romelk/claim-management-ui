@@ -1,22 +1,22 @@
 // src/components/MainContent/ContentLayout.tsx
 import React, { useState } from 'react';
-import { 
-  Box, 
-  List, 
-  ListItem, 
+import {
+  Box,
+  List,
+  ListItem,
   ListItemButton,
-  ListItemIcon, 
-  ListItemText, 
-  Paper, 
+  ListItemIcon,
+  ListItemText,
+  Paper,
   Typography,
-  Divider
+  Divider,
 } from '@mui/material';
-import { 
+import {
   Assignment as OrderedActionsIcon,
   Link as LinkableClaimsIcon,
   ViewList as SKUListIcon,
   History as HistoryIcon,
-  GetApp as DownloadsIcon
+  GetApp as DownloadsIcon,
 } from '@mui/icons-material';
 
 // Import content components
@@ -89,19 +89,19 @@ const ContentLayout = () => {
     }
   };
 
-  return (
-    <Box 
-      sx={{ 
-        display: 'flex',
-        width: '100%',
-        height: '70vh', // Increased height for better use of space
-        gap: 2
-      }}
+    return (
+        <Box
+            sx={{
+                display: 'flex',
+                width: '100%',
+                height: '100%', // Use full available height
+                gap: 2,
+            }}
     >
       {/* Navigation Menu */}
-      <Paper 
-        variant="outlined" 
-        sx={{ 
+      <Paper
+        variant="outlined"
+        sx={{
           width: '250px',
           display: 'flex',
           flexDirection: 'column',
@@ -122,18 +122,16 @@ const ContentLayout = () => {
                 <ListItemButton
                   selected={activeSection === item.id}
                   onClick={() => setActiveSection(item.id)}
-                  sx={{ 
+                  sx={{
                     borderLeft: activeSection === item.id ? '4px solid' : '4px solid transparent',
                     borderColor: activeSection === item.id ? 'primary.main' : 'transparent',
                     bgcolor: activeSection === item.id ? 'rgba(0, 0, 0, 0.04)' : 'transparent',
                     '&:hover': {
-                      bgcolor: 'rgba(0, 0, 0, 0.04)'
-                    }
+                      bgcolor: 'rgba(0, 0, 0, 0.04)',
+                    },
                   }}
                 >
-                  <ListItemIcon>
-                    {item.icon}
-                  </ListItemIcon>
+                  <ListItemIcon>{item.icon}</ListItemIcon>
                   <ListItemText primary={item.label} />
                 </ListItemButton>
               </ListItem>
@@ -144,9 +142,9 @@ const ContentLayout = () => {
       </Paper>
 
       {/* Content Area */}
-      <Paper 
-        variant="outlined" 
-        sx={{ 
+      <Paper
+        variant="outlined"
+        sx={{
           flexGrow: 1,
           display: 'flex',
           flexDirection: 'column',

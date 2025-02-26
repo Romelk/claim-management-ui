@@ -21,7 +21,7 @@ const ProductDetailsDrawer: React.FC<ProductDetailsDrawerProps> = ({ open, onClo
           position: 'absolute',
           height: '100%',
           borderLeft: '1px solid',
-          borderColor: 'divider'
+          borderColor: 'divider',
         },
       }}
     >
@@ -33,9 +33,7 @@ const ProductDetailsDrawer: React.FC<ProductDetailsDrawerProps> = ({ open, onClo
           </IconButton>
         </Box>
       </Box>
-      <Box sx={{ p: 2 }}>
-        {/* Product details content */}
-      </Box>
+      <Box sx={{ p: 2 }}>{/* Product details content */}</Box>
     </Drawer>
   );
 };

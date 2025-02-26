@@ -1,18 +1,10 @@
 // src/components/ClaimManagementSystem.tsx
 import React, { useState } from 'react';
-import {
-  Box,
-  Typography,
-  Paper,
-  Button,
-  IconButton,
-  Breadcrumbs,
-  Tooltip
-} from '@mui/material';
+import { Box, Typography, Paper, Button, IconButton, Breadcrumbs, Tooltip } from '@mui/material';
 import {
   GetApp as DownloadIcon,
   MoreVert as MoreVertIcon,
-  ContentCopy as CopyIcon
+  ContentCopy as CopyIcon,
 } from '@mui/icons-material';
 import Sidebar from './Sidebar';
 import ContentSegments from './MainContent/ContentSegments';
@@ -24,7 +16,7 @@ const claimDetails = [
   { id: 'ean', label: 'EAN', value: '3607345809915', canCopy: true },
   { id: 'orderNumber', label: 'Order Number', value: '1234567', canCopy: true },
   { id: 'supplier', label: 'Supplier', value: 'Phillips - 88618' },
-  { id: 'warehouse', label: 'Warehouse', value: 'Sudhafen' }
+  { id: 'warehouse', label: 'Warehouse', value: 'Sudhafen' },
 ];
 
 const ClaimManagementSystem = () => {
@@ -57,13 +49,13 @@ const ClaimManagementSystem = () => {
       {/* Main Content */}
       <Box sx={{ flexGrow: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
         {/* Header */}
-        <Paper 
-          elevation={0} 
-          sx={{ 
-            px: 3, 
-            py: 2, 
-            borderBottom: 1, 
-            borderColor: 'divider'
+        <Paper
+          elevation={0}
+          sx={{
+            px: 3,
+            py: 2,
+            borderBottom: 1,
+            borderColor: 'divider',
           }}
         >
           <Breadcrumbs separator="›" aria-label="breadcrumb">
@@ -80,14 +72,16 @@ const ClaimManagementSystem = () => {
         </Paper>
 
         {/* Content Area */}
-        <Box sx={{ p: 3, flexGrow: 1, overflow: 'auto' }}>
+        <Box sx={{ p: 3, flexGrow: 1, overflow: 'auto', display: 'flex', flexDirection: 'column' }}>
           {/* Header Section */}
-          <Box sx={{ 
-            display: 'flex', 
-            justifyContent: 'space-between', 
-            alignItems: 'flex-start',
-            mb: 3
-          }}>
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'flex-start',
+              mb: 3,
+            }}
+          >
             <Box>
               <Typography variant="h6" gutterBottom>
                 Claim Decision
@@ -96,7 +90,7 @@ const ClaimManagementSystem = () => {
                 View comprehensive details and decisions of a claim.
               </Typography>
             </Box>
-            
+
             <Box sx={{ display: 'flex', gap: 1 }}>
               <Button
                 variant="outlined"
@@ -120,7 +114,7 @@ const ClaimManagementSystem = () => {
             <Typography variant="body2" color="text.secondary" gutterBottom>
               Claim #{claimId} • Article #4343898349
             </Typography>
-            
+
             {/* Status Pills */}
             <Box sx={{ display: 'flex', gap: 1, mt: 2, mb: 3 }}>
               <Button
@@ -147,14 +141,16 @@ const ClaimManagementSystem = () => {
                 Linkable Claim
               </Button>
             </Box>
-            
+
             {/* Detail Cards Row */}
-            <Box sx={{ 
-              display: 'flex', 
-              gap: 2, 
-              flexWrap: 'wrap',
-              mb: 3
-            }}>
+            <Box
+              sx={{
+                display: 'flex',
+                gap: 2,
+                flexWrap: 'wrap',
+                mb: 3,
+              }}
+            >
               {claimDetails.map((detail) => (
                 <Paper
                   key={detail.id}
@@ -165,24 +161,26 @@ const ClaimManagementSystem = () => {
                     display: 'flex',
                     flexDirection: 'column',
                     gap: 1,
-                    position: 'relative'
+                    position: 'relative',
                   }}
                 >
                   <Typography variant="caption" color="text.secondary">
                     {detail.label}
                   </Typography>
-                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <Box
+                    sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
+                  >
                     <Typography variant="body1" fontWeight="medium">
                       {detail.value}
                     </Typography>
                     {detail.canCopy && (
-                      <Tooltip 
-                        title="Copied!" 
+                      <Tooltip
+                        title="Copied!"
                         open={openTooltip === detail.id}
                         placement="top"
                         arrow
                       >
-                        <IconButton 
+                        <IconButton
                           size="small"
                           onClick={() => handleCopyToClipboard(detail.value, detail.id)}
                           sx={{ ml: 1, p: 0.5 }}
@@ -198,7 +196,9 @@ const ClaimManagementSystem = () => {
           </Box>
 
           {/* Content Segments (Two sections) */}
-          <ContentSegments />
+          <Box sx={{ flexGrow: 1, minHeight: 0, mt: 2 }}>
+            <ContentSegments />
+          </Box>
         </Box>
       </Box>
     </Box>

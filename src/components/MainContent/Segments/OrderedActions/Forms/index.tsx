@@ -4,7 +4,7 @@ import SecondaryInspectionForm from './SecondaryInspectionForm';
 // Export all form components
 export {
   ReworkForm,
-  SecondaryInspectionForm
+  SecondaryInspectionForm,
   // Add other form components as they are created
 };
 
@@ -49,12 +49,12 @@ export const getTodayString = (): string => {
 // Export a mapping of action types to their respective form components
 // This can be used for dynamic form rendering
 export const ActionForms = {
-  'rework': ReworkForm,
-  'secondary-inspection': SecondaryInspectionForm
+  rework: ReworkForm,
+  'secondary-inspection': SecondaryInspectionForm,
   // Add other mappings as forms are created
 };
 
 export default {
   ReworkForm,
-  SecondaryInspectionForm
+  SecondaryInspectionForm,
 };

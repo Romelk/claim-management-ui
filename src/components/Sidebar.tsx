@@ -12,7 +12,7 @@ import {
   Divider,
   IconButton,
   Collapse,
-  Badge
+  Badge,
 } from '@mui/material';
 import {
   Home as HomeIcon,
@@ -57,25 +57,27 @@ const NavItem: React.FC<NavItemProps> = ({ icon, text, active = false, badge, on
           },
         }}
       >
-        <ListItemIcon sx={{ 
-          minWidth: 35,
-          color: active ? 'primary.main' : 'inherit'
-        }}>
+        <ListItemIcon
+          sx={{
+            minWidth: 35,
+            color: active ? 'primary.main' : 'inherit',
+          }}
+        >
           {icon}
         </ListItemIcon>
-        <ListItemText 
+        <ListItemText
           primary={text}
-          sx={{ 
+          sx={{
             '& .MuiListItemText-primary': {
               fontSize: '0.875rem',
               fontWeight: active ? 500 : 400,
-              color: active ? 'primary.main' : 'inherit'
-            }
-          }} 
+              color: active ? 'primary.main' : 'inherit',
+            },
+          }}
         />
         {badge && (
-          <Badge 
-            badgeContent={badge} 
+          <Badge
+            badgeContent={badge}
             color={badge === 'New' ? 'success' : 'primary'}
             sx={{ ml: 1 }}
           />
@@ -99,10 +101,11 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onToggle }) => {
         '& .MuiDrawer-paper': {
           width: open ? drawerWidth : 72,
           boxSizing: 'border-box',
-          transition: theme => theme.transitions.create(['width'], {
-            easing: theme.transitions.easing.sharp,
-            duration: theme.transitions.duration.enteringScreen,
-          }),
+          transition: (theme) =>
+            theme.transitions.create(['width'], {
+              easing: theme.transitions.easing.sharp,
+              duration: theme.transitions.duration.enteringScreen,
+            }),
           overflowX: 'hidden',
           bgcolor: 'background.paper',
           borderRight: '1px solid',
@@ -111,26 +114,30 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onToggle }) => {
       }}
     >
       {/* Header */}
-      <Box sx={{ 
-        p: 2, 
-        display: 'flex', 
-        alignItems: 'center', 
-        justifyContent: open ? 'space-between' : 'center'
-      }}>
+      <Box
+        sx={{
+          p: 2,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: open ? 'space-between' : 'center',
+        }}
+      >
         {open ? (
           <>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <Box sx={{ 
-                width: 32, 
-                height: 32, 
-                bgcolor: 'primary.main', 
-                borderRadius: 1,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: 'white',
-                mr: 1
-              }}>
+              <Box
+                sx={{
+                  width: 32,
+                  height: 32,
+                  bgcolor: 'primary.main',
+                  borderRadius: 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'white',
+                  mr: 1,
+                }}
+              >
                 <DescriptionIcon />
               </Box>
               <Typography variant="subtitle1" fontWeight="bold">
@@ -154,85 +161,67 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onToggle }) => {
       <Box sx={{ flexGrow: 1, overflow: 'auto' }}>
         <List sx={{ px: 1 }}>
           {/* Dashboard */}
-          <NavItem 
-            icon={<HomeIcon />} 
-            text="Dashboard" 
-          />
+          <NavItem icon={<HomeIcon />} text="Dashboard" />
 
           {/* CLAIM Section */}
           {open && (
             <Box sx={{ px: 2, py: 1.5 }}>
-              <Box 
+              <Box
                 onClick={() => setClaimExpanded(!claimExpanded)}
-                sx={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
                   cursor: 'pointer',
-                  justifyContent: 'space-between'
+                  justifyContent: 'space-between',
                 }}
               >
-                <Typography 
-                  variant="caption" 
-                  color="text.secondary" 
-                  sx={{ fontWeight: 600 }}
-                >
+                <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
                   CLAIM
                 </Typography>
-                {claimExpanded ? <KeyboardArrowUpIcon fontSize="small" /> : <KeyboardArrowDownIcon fontSize="small" />}
+                {claimExpanded ? (
+                  <KeyboardArrowUpIcon fontSize="small" />
+                ) : (
+                  <KeyboardArrowDownIcon fontSize="small" />
+                )}
               </Box>
             </Box>
           )}
 
           <Collapse in={claimExpanded} timeout="auto">
             <List disablePadding>
-              <NavItem 
-                icon={<DescriptionIcon />} 
-                text="Stock Item Claims" 
-                active 
-                badge="3"
-              />
-              <NavItem 
-                icon={<InventoryIcon />} 
-                text="Non Stock Item Claims" 
-              />
+              <NavItem icon={<DescriptionIcon />} text="Stock Item Claims" active badge="3" />
+              <NavItem icon={<InventoryIcon />} text="Non Stock Item Claims" />
             </List>
           </Collapse>
 
           {/* REWORK Section */}
           {open && (
             <Box sx={{ px: 2, py: 1.5 }}>
-              <Box 
+              <Box
                 onClick={() => setReworkExpanded(!reworkExpanded)}
-                sx={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
                   cursor: 'pointer',
-                  justifyContent: 'space-between'
+                  justifyContent: 'space-between',
                 }}
               >
-                <Typography 
-                  variant="caption" 
-                  color="text.secondary" 
-                  sx={{ fontWeight: 600 }}
-                >
+                <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
                   REWORK
                 </Typography>
-                {reworkExpanded ? <KeyboardArrowUpIcon fontSize="small" /> : <KeyboardArrowDownIcon fontSize="small" />}
+                {reworkExpanded ? (
+                  <KeyboardArrowUpIcon fontSize="small" />
+                ) : (
+                  <KeyboardArrowDownIcon fontSize="small" />
+                )}
               </Box>
             </Box>
           )}
 
           <Collapse in={reworkExpanded} timeout="auto">
             <List disablePadding>
-              <NavItem 
-                icon={<RefreshIcon />} 
-                text="Rework Orders" 
-              />
-              <NavItem 
-                icon={<SettingsIcon />} 
-                text="Rules for Planned Rework" 
-                badge="New"
-              />
+              <NavItem icon={<RefreshIcon />} text="Rework Orders" />
+              <NavItem icon={<SettingsIcon />} text="Rules for Planned Rework" badge="New" />
             </List>
           </Collapse>
         </List>
@@ -241,18 +230,9 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onToggle }) => {
       {/* Footer Items */}
       <Divider />
       <List sx={{ px: 1, py: 2 }}>
-        <NavItem 
-          icon={<HelpIcon />} 
-          text="Help & Resources" 
-        />
-        <NavItem 
-          icon={<PersonIcon />} 
-          text="Profile" 
-        />
-        <NavItem 
-          icon={<LogoutIcon />} 
-          text="Logout" 
-        />
+        <NavItem icon={<HelpIcon />} text="Help & Resources" />
+        <NavItem icon={<PersonIcon />} text="Profile" />
+        <NavItem icon={<LogoutIcon />} text="Logout" />
       </List>
     </Drawer>
   );

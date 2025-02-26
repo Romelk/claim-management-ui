@@ -13,7 +13,7 @@ const ClaimInfo: React.FC<ClaimInfoProps> = ({ claimId, articleId }) => {
       <Typography variant="subtitle1" color="text.secondary">
         Claim #{claimId} • Article #{articleId}
       </Typography>
-      
+
       <Box sx={{ display: 'flex', gap: 1, mt: 2 }}>
         <Button
           variant="contained"
@@ -23,12 +23,12 @@ const ClaimInfo: React.FC<ClaimInfoProps> = ({ claimId, articleId }) => {
             borderRadius: 4,
             textTransform: 'none',
             fontWeight: 'medium',
-            px: 2
+            px: 2,
           }}
         >
           Planned Claim
         </Button>
-        
+
         <Button
           variant="contained"
           size="small"
@@ -41,13 +41,13 @@ const ClaimInfo: React.FC<ClaimInfoProps> = ({ claimId, articleId }) => {
             color: 'info.main',
             '&:hover': {
               bgcolor: 'info.main',
-              color: 'white'
-            }
+              color: 'white',
+            },
           }}
         >
           In Progress
         </Button>
-        
+
         <Button
           variant="outlined"
           size="small"
@@ -57,7 +57,7 @@ const ClaimInfo: React.FC<ClaimInfoProps> = ({ claimId, articleId }) => {
             fontWeight: 'medium',
             px: 2,
             color: 'text.secondary',
-            borderColor: 'grey.300'
+            borderColor: 'grey.300',
           }}
         >
           Linkable Claim

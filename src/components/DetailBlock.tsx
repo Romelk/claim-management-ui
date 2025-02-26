@@ -9,11 +9,7 @@ interface DetailBlockProps {
   canCopy?: boolean;
 }
 
-const DetailBlock: React.FC<DetailBlockProps> = ({ 
-  label, 
-  value, 
-  canCopy = false 
-}) => {
+const DetailBlock: React.FC<DetailBlockProps> = ({ label, value, canCopy = false }) => {
   const handleCopy = () => {
     navigator.clipboard.writeText(value.toString());
   };
@@ -31,36 +27,30 @@ const DetailBlock: React.FC<DetailBlockProps> = ({
         bgcolor: 'background.paper',
       }}
     >
-      <Typography 
-        variant="caption" 
-        color="text.secondary" 
-        gutterBottom
-      >
+      <Typography variant="caption" color="text.secondary" gutterBottom>
         {label}
       </Typography>
 
-      <Box sx={{ 
-        display: 'flex', 
-        alignItems: 'center', 
-        justifyContent: 'space-between'
-      }}>
-        <Typography 
-          variant="body1" 
-          component="div" 
-          sx={{ fontWeight: 'medium' }}
-        >
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}
+      >
+        <Typography variant="body1" component="div" sx={{ fontWeight: 'medium' }}>
           {value}
         </Typography>
 
         {canCopy && (
           <Tooltip title="Copy">
-            <IconButton 
-              size="small" 
+            <IconButton
+              size="small"
               onClick={handleCopy}
-              sx={{ 
+              sx={{
                 ml: 1,
                 opacity: 0.7,
-                '&:hover': { opacity: 1 }
+                '&:hover': { opacity: 1 },
               }}
             >
               <ContentCopyIcon fontSize="small" />

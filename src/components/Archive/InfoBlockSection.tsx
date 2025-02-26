@@ -1,10 +1,5 @@
 import React, { useState } from 'react';
-import {
-  Box,
-  Button,
-  Typography,
-  IconButton
-} from '@mui/material';
+import { Box, Button, Typography, IconButton } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 
 const infoBlocks = [
@@ -12,14 +7,14 @@ const infoBlocks = [
   { id: 'history', label: 'HISTORY' },
   { id: 'deliveryDetails', label: 'DELIVERY DETAILS' },
   { id: 'notes', label: 'NOTES' },
-  { id: 'downloads', label: 'DOWNLOADS' }
+  { id: 'downloads', label: 'DOWNLOADS' },
 ];
 
 const InfoBlockSection: React.FC = () => {
   const [openPanel, setOpenPanel] = useState<string | null>(null);
 
   const togglePanel = (blockId: string | null) => {
-    setOpenPanel(prev => (prev === blockId ? null : blockId));
+    setOpenPanel((prev) => (prev === blockId ? null : blockId));
   };
 
   return (
@@ -31,7 +26,7 @@ const InfoBlockSection: React.FC = () => {
           sx={{
             color: openPanel === block.id ? 'primary.main' : 'text.secondary',
             fontWeight: openPanel === block.id ? 'bold' : 'normal',
-            textTransform: 'uppercase'
+            textTransform: 'uppercase',
           }}
         >
           {block.label}
@@ -39,14 +34,29 @@ const InfoBlockSection: React.FC = () => {
       ))}
 
       {openPanel && (
-        <Box sx={{ width: 350, bgcolor: 'grey.100', p: 2, height: '100vh', borderLeft: 1, borderColor: 'divider' }}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-            <Typography variant="h6">{infoBlocks.find(block => block.id === openPanel)?.label}</Typography>
+        <Box
+          sx={{
+            width: 350,
+            bgcolor: 'grey.100',
+            p: 2,
+            height: '100vh',
+            borderLeft: 1,
+            borderColor: 'divider',
+          }}
+        >
+          <Box
+            sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}
+          >
+            <Typography variant="h6">
+              {infoBlocks.find((block) => block.id === openPanel)?.label}
+            </Typography>
             <IconButton onClick={() => togglePanel(null)}>
               <CloseIcon />
             </IconButton>
           </Box>
-          <Typography variant="body2">Content for {infoBlocks.find(block => block.id === openPanel)?.label}</Typography>
+          <Typography variant="body2">
+            Content for {infoBlocks.find((block) => block.id === openPanel)?.label}
+          </Typography>
         </Box>
       )}
     </Box>
@@ -54,4 +64,3 @@ const InfoBlockSection: React.FC = () => {
 };
 
 export default InfoBlockSection;
-

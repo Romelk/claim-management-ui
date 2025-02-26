@@ -1,29 +1,26 @@
 // src/components/MainContent/Segments/Panels/ProductPanel.tsx
 import React from 'react';
-import { 
-  Box, 
-  Typography, 
-  IconButton, 
+import {
+  Box,
+  Typography,
+  IconButton,
   Dialog,
   DialogTitle,
   DialogContent,
-  Divider
+  Divider,
 } from '@mui/material';
-import { 
-  Close as CloseIcon,
-  Inventory as ProductIcon
-} from '@mui/icons-material';
+import { Close as CloseIcon, Inventory as ProductIcon } from '@mui/icons-material';
 
 // Sample product data
 const productDetails = {
-  retailerId: "1000000 (OTTO)",
-  productCategory: "Bekleidung",
-  productType: "Sweatshirt",
-  brandName: "Tommy Hilfiger",
-  baseColor: "-",
-  variationId: "1666987640",
-  styleCode: "TH-7206GK-147",
-  enclosures: "-"
+  retailerId: '1000000 (OTTO)',
+  productCategory: 'Bekleidung',
+  productType: 'Sweatshirt',
+  brandName: 'Tommy Hilfiger',
+  baseColor: '-',
+  variationId: '1666987640',
+  styleCode: 'TH-7206GK-147',
+  enclosures: '-',
 };
 
 interface ProductPanelProps {
@@ -41,42 +38,40 @@ const ProductPanel: React.FC<ProductPanelProps> = ({ open, onClose }) => {
       PaperProps={{
         sx: {
           borderRadius: 1,
-          bgcolor: 'background.paper',
+          bgcolor: 'white',
           boxShadow: 3,
           height: 'auto',
-          maxHeight: '80vh'
-        }
+          maxHeight: '80vh',
+        },
       }}
     >
-      <DialogTitle sx={{ 
-        display: 'flex', 
-        alignItems: 'center', 
-        p: 3,
-        pb: 2
-      }}>
-        <ProductIcon 
-          sx={{ 
-            color: '#d32f2f', 
-            mr: 1.5, 
-            fontSize: 28 
-          }} 
-        />
-        <Typography 
-          variant="h6" 
-          component="div" 
-          sx={{ 
-            fontWeight: 'medium', 
+      <DialogTitle
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          p: 3,
+          pb: 2,
+        }}
+      >
+        <ProductIcon
+          sx={{
             color: '#d32f2f',
-            flexGrow: 1
+            mr: 1.5,
+            fontSize: 28,
+          }}
+        />
+        <Typography
+          variant="h6"
+          component="div"
+          sx={{
+            fontWeight: 'medium',
+            color: '#d32f2f',
+            flexGrow: 1,
           }}
         >
           PRODUCT
         </Typography>
-        <IconButton 
-          edge="end" 
-          onClick={onClose}
-          aria-label="close"
-        >
+        <IconButton edge="end" onClick={onClose} aria-label="close">
           <CloseIcon />
         </IconButton>
       </DialogTitle>
@@ -92,7 +87,7 @@ const ProductPanel: React.FC<ProductPanelProps> = ({ open, onClose }) => {
             {productDetails.retailerId}
           </Typography>
         </Box>
-        
+
         <Box sx={{ mb: 3 }}>
           <Typography variant="body2" color="text.secondary" gutterBottom>
             Product Category
@@ -101,7 +96,7 @@ const ProductPanel: React.FC<ProductPanelProps> = ({ open, onClose }) => {
             {productDetails.productCategory}
           </Typography>
         </Box>
-        
+
         <Box sx={{ mb: 3 }}>
           <Typography variant="body2" color="text.secondary" gutterBottom>
             Product Type
@@ -110,7 +105,7 @@ const ProductPanel: React.FC<ProductPanelProps> = ({ open, onClose }) => {
             {productDetails.productType}
           </Typography>
         </Box>
-        
+
         <Box sx={{ mb: 3 }}>
           <Typography variant="body2" color="text.secondary" gutterBottom>
             Brand Name
@@ -119,7 +114,7 @@ const ProductPanel: React.FC<ProductPanelProps> = ({ open, onClose }) => {
             {productDetails.brandName}
           </Typography>
         </Box>
-        
+
         <Box sx={{ mb: 3 }}>
           <Typography variant="body2" color="text.secondary" gutterBottom>
             Base Color
@@ -128,7 +123,7 @@ const ProductPanel: React.FC<ProductPanelProps> = ({ open, onClose }) => {
             {productDetails.baseColor}
           </Typography>
         </Box>
-        
+
         <Box sx={{ mb: 3 }}>
           <Typography variant="body2" color="text.secondary" gutterBottom>
             Variation ID
@@ -137,7 +132,7 @@ const ProductPanel: React.FC<ProductPanelProps> = ({ open, onClose }) => {
             {productDetails.variationId}
           </Typography>
         </Box>
-        
+
         <Box sx={{ mb: 3 }}>
           <Typography variant="body2" color="text.secondary" gutterBottom>
             Style Code
@@ -146,7 +141,7 @@ const ProductPanel: React.FC<ProductPanelProps> = ({ open, onClose }) => {
             {productDetails.styleCode}
           </Typography>
         </Box>
-        
+
         <Box sx={{ mb: 3 }}>
           <Typography variant="body2" color="text.secondary" gutterBottom>
             Enclosures

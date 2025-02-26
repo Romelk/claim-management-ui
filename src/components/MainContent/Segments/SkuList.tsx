@@ -7,17 +7,17 @@ const SkuList: React.FC = () => {
       <Typography variant="h5" sx={{ mb: 2 }}>
         SKU List
       </Typography>
-      
-      <Paper 
-        variant="outlined" 
-        sx={{ 
-          borderRadius: 2, 
-          p: 3, 
+
+      <Paper
+        variant="outlined"
+        sx={{
+          borderRadius: 2,
+          p: 3,
           flexGrow: 1,
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'center',
-          alignItems: 'center'
+          alignItems: 'center',
         }}
       >
         <Typography variant="subtitle1" color="text.secondary" align="center">

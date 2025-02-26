@@ -21,7 +21,7 @@ const LinkedClaimsDrawer: React.FC<LinkedClaimsDrawerProps> = ({ open, onClose }
           position: 'absolute',
           height: '100%',
           borderLeft: '1px solid',
-          borderColor: 'divider'
+          borderColor: 'divider',
         },
       }}
     >
@@ -33,11 +33,9 @@ const LinkedClaimsDrawer: React.FC<LinkedClaimsDrawerProps> = ({ open, onClose }
           </IconButton>
         </Box>
       </Box>
-      <Box sx={{ p: 2 }}>
-        {/* Linked Claims content */}
-      </Box>
+      <Box sx={{ p: 2 }}>{/* Linked Claims content */}</Box>
     </Drawer>
   );
 };
 
-export default LinkedClaimsDrawer;  // Remove the .tsx extension
+export default LinkedClaimsDrawer; // Remove the .tsx extension
