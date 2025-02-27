@@ -1,0 +1,41 @@
+// Action type definitions
+export type ActionType =
+    | 'rework'
+    | 'secondary-inspection'
+    | 'give-back'
+    | 'scrap'
+    | '3p-selling'
+    | 'on-stock';
+
+// Action status types
+export type ActionStatus = import { ReactNode } from 'react';
+
+export type ActionType = 'rework' | 'secondary-inspection' | 'give-back' | 'scrap' | '3p-selling' | 'on-stock';
+
+export interface ActionCard {
+    type: ActionType;
+    title: string;
+    description: string;
+    iconElement: () => ReactNode;
+    color: string;
+}'draft' | 'pending' | 'in-progress' | 'completed' | 'cancelled';
+
+// Interface for the action data
+export interface ActionData {
+    id: string;
+    type: ActionType;
+    title: string;
+    status: ActionStatus;
+    createdAt: Date;
+    updatedAt: Date;
+    formData: any; // This will hold the specific form data
+}
+
+// Interface for the action card config
+export interface ActionCard {
+    type: ActionType;
+    title: string;
+    description: string;
+    iconElement: React.ReactElement;
+    color: string;
+}

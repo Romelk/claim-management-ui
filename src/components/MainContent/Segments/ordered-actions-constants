@@ -1,0 +1,118 @@
+import React from 'react';
+import {
+    Build as ReworkIcon,
+    Search as InspectionIcon,
+    KeyboardReturn as GiveBackIcon,
+    Delete as ScrapIcon,
+    Storefront as SellingIcon,
+    Inventory as StockIcon,
+    Add as AddIcon,
+} from '@mui/icons-material';
+import { ActionCard, ActionType } from './ordered-actions-types';
+
+// Define the action cards with their metadata
+export const actionCards: ActionCard[] = [
+    {
+        type: 'rework',
+        title: 'Rework',
+        description: 'Send the item for rework to fix defects or improve quality',
+        iconElement: () => {
+            return <ReworkIcon fontSize="large" />;
+        },
+        color: '#2196f3', // Blue
+    },
+    {
+        type: 'secondary-inspection',
+        title: 'Secondary Inspection',
+        description: 'Request another detailed inspection to verify issues',
+        iconElement: () => {
+            return <InspectionIcon fontSize="large" />;
+        },
+        color: '#9c27b0', // Purple
+    },
+    {
+        type: 'give-back',
+        title: 'Give Back',
+        description: 'Return the item to the customer or supplier',
+        iconElement: () => {
+            return <GiveBackIcon fontSize="large" />;
+        },
+        color: '#ff9800', // Orange
+    },
+    {
+        type: 'scrap',
+        title: 'Scrap',
+        description: 'Dispose of the item as it cannot be salvaged',
+        iconElement: () => {
+            return <ScrapIcon fontSize="large" />;
+        },
+        color: '#f44336', // Red
+    },
+    {
+        type: '3p-selling',
+        title: '3P Selling',
+        description: 'Sell the item through a third-party marketplace',
+        iconElement: () => {
+            return <SellingIcon fontSize="large" />;
+        },
+        color: '#4caf50', // Green
+    },
+    {
+        type: 'on-stock',
+        title: 'On-Stock',
+        description: 'Keep the item in inventory for future use',
+        iconElement: () => {
+            return <StockIcon fontSize="large" />;
+        },
+        color: '#795548', // Brown
+    },
+];
+
+// Get small icon based on action type
+export const getSmallIcon = (type: ActionType): React.ReactElement => {
+    switch (type) {
+        case 'rework':
+            return <ReworkIcon fontSize="small" />;
+        case 'secondary-inspection':
+            return <InspectionIcon fontSize="small" />;
+        case 'give-back':
+            return <GiveBackIcon fontSize="small" />;
+        case 'scrap':
+            return <ScrapIcon fontSize="small" />;
+        case '3p-selling':
+            return <SellingIcon fontSize="small" />;
+        case 'on-stock':
+            return <StockIcon fontSize="small" />;
+        default:
+            return <AddIcon fontSize="small" />;
+    }
+};
+
+// Utility function to format currency
+export const formatCurrency = (amount: number): string =>
+    amount.toLocaleString('de-DE', {
+        style: 'currency',
+        currency: 'EUR'
+    });
+
+// Generate action title based on form data
+export const getActionTitle = (type: ActionType, data: any): string => {
+    const actionInfo = actionCards.find((a) => a.type === type);
+
+    switch (type) {
+        case 'rework':
+            return `Rework ${data.reworkSteps ? data.reworkSteps.reduce((sum: number, step: { quantity: number }) => sum + step.quantity, 0) : ''} item(s): Total Cost ${formatCurrency(data.totalCost || 0)}`;
+        case 'secondary-inspection':
+            return 'Secondary Inspection';
+        case 'give-back':
+            return 'Give Back';
+        case 'scrap':
+            return 'Scrap Items';
+        case '3p-selling':
+            return '3P Selling';
+        case 'on-stock':
+            return 'On-Stock';
+        default:
+            return actionInfo?.title || 'New Action';
+    }
+};
