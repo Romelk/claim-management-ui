@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
     Box,
     Typography,
@@ -12,11 +12,13 @@ import {
     IconButton,
     ToggleButtonGroup,
     ToggleButton,
+    Button,
 } from '@mui/material';
 import {
     Add as AddIcon,
     Delete as DeleteIcon,
-    Edit as EditIcon
+    Edit as EditIcon,
+    Save as SaveIcon
 } from '@mui/icons-material';
 
 // Import modular types and definitions
@@ -36,7 +38,16 @@ import {
 // Import the CostBadge
 import CostBadge from './CostBadge';
 
-const ReworkForm: React.FC<ReworkFormProps> = ({ onFormChange, initialData = {} }) => {
+// Extended props to include onSave function
+interface ExtendedReworkFormProps extends ReworkFormProps {
+    onSave?: () => void;
+}
+
+const ReworkForm: React.FC<ExtendedReworkFormProps> = ({
+                                                           onFormChange,
+                                                           initialData = {},
+                                                           onSave
+                                                       }) => {
     // State for steps
     const [reworkSteps, setReworkSteps] = useState<ReworkStep[]>(
         initialData.reworkSteps || []
@@ -61,6 +72,17 @@ const ReworkForm: React.FC<ReworkFormProps> = ({ onFormChange, initialData = {} 
 
     // Calculate total cost
     const totalCost = useMemo(() => calculateTotalCost(reworkSteps), [reworkSteps]);
+
+    // Effect to notify parent of initial data if provided
+    useEffect(() => {
+        if (initialData && Object.keys(initialData).length > 0) {
+            onFormChange({
+                globalNote,
+                reworkSteps,
+                totalCost
+            });
+        }
+    }, []);
 
     // Handle global note change
     const handleGlobalNoteChange = (note: string) => {
@@ -186,6 +208,9 @@ const ReworkForm: React.FC<ReworkFormProps> = ({ onFormChange, initialData = {} 
             totalCost: calculateTotalCost(updatedSteps)
         });
     };
+
+    // Determine if form has enough data to save
+    const canSave = reworkSteps.length > 0;
 
     return (
         <Box sx={{ position: 'relative', p: 2 }}>
@@ -416,6 +441,7 @@ const ReworkForm: React.FC<ReworkFormProps> = ({ onFormChange, initialData = {} 
                 variant="outlined"
                 sx={{
                     p: 2,
+                    mb: 3,
                     borderColor: 'divider',
                     backgroundColor: 'background.default'
                 }}
@@ -433,6 +459,23 @@ const ReworkForm: React.FC<ReworkFormProps> = ({ onFormChange, initialData = {} 
                     onChange={(e) => handleGlobalNoteChange(e.target.value)}
                 />
             </Paper>
+
+            {/* Save Button */}
+            {onSave && (
+                <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        size="large"
+                        startIcon={<SaveIcon />}
+                        onClick={onSave}
+                        disabled={!canSave}
+                        sx={{ px: 4 }}
+                    >
+                        Save Rework Order
+                    </Button>
+                </Box>
+            )}
         </Box>
     );
 };

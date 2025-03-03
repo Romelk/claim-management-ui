@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -16,6 +16,7 @@ import {
   DialogActions,
   Alert,
   Snackbar,
+  Chip,
 } from '@mui/material';
 import {
   Build as ReworkIcon,
@@ -28,6 +29,7 @@ import {
   ArrowBack as BackIcon,
   Close as CloseIcon,
   Save as SaveIcon,
+  Visibility as VisibilityIcon,
 } from '@mui/icons-material';
 import { TransitionProps } from '@mui/material/transitions';
 import { Slide } from '@mui/material';
@@ -37,12 +39,12 @@ import { ReworkForm, SecondaryInspectionForm } from './OrderedActions/Forms';
 
 // Action type definitions
 type ActionType =
-  | 'rework'
-  | 'secondary-inspection'
-  | 'give-back'
-  | 'scrap'
-  | '3p-selling'
-  | 'on-stock';
+    | 'rework'
+    | 'secondary-inspection'
+    | 'give-back'
+    | 'scrap'
+    | '3p-selling'
+    | 'on-stock';
 
 // Interface for the action data
 interface ActionData {
@@ -132,17 +134,37 @@ const getSmallIcon = (type: ActionType) => {
 
 // Slide transition for dialogs
 const Transition = React.forwardRef(function Transition(
-  props: TransitionProps & {
-    children: React.ReactElement;
-  },
-  ref: React.Ref<unknown>
+    props: TransitionProps & {
+      children: React.ReactElement;
+    },
+    ref: React.Ref<unknown>
 ) {
   return <Slide direction="up" ref={ref} {...props} />;
 });
 
 const OrderedActions: React.FC = () => {
   // State to track created actions
-  const [actions, setActions] = useState<ActionData[]>([]);
+  const [actions, setActions] = useState<ActionData[]>(() => {
+    // Retrieve saved actions from localStorage on component mount
+    const savedActions = localStorage.getItem('orderedActions');
+    if (savedActions) {
+      try {
+        // Parse the JSON string from localStorage
+        const parsedActions = JSON.parse(savedActions);
+
+        // Convert string dates back to Date objects
+        return parsedActions.map((action: any) => ({
+          ...action,
+          createdAt: new Date(action.createdAt),
+          updatedAt: new Date(action.updatedAt)
+        }));
+      } catch (error) {
+        console.error('Error parsing saved actions:', error);
+        return [];
+      }
+    }
+    return [];
+  });
 
   // State for action selection mode
   const [isSelectingAction, setIsSelectingAction] = useState<boolean>(false);
@@ -158,6 +180,9 @@ const OrderedActions: React.FC = () => {
 
   // State for confirmation dialog
   const [showConfirmation, setShowConfirmation] = useState<boolean>(false);
+
+  // State for editing an existing action
+  const [editingAction, setEditingAction] = useState<ActionData | null>(null);
 
   // State for notification snackbar
   const [notification, setNotification] = useState<{
@@ -199,6 +224,7 @@ const OrderedActions: React.FC = () => {
     setFormData(null);
     setIsFormValid(false);
     setIsSelectingAction(true);
+    setEditingAction(null);
   };
 
   // Function to cancel the action and return to empty state
@@ -217,6 +243,7 @@ const OrderedActions: React.FC = () => {
     setFormData(null);
     setIsFormValid(false);
     setIsSelectingAction(false);
+    setEditingAction(null);
   };
 
   // Function to confirm discarding changes
@@ -245,31 +272,78 @@ const OrderedActions: React.FC = () => {
 
   // Function to submit the action form
   const handleSubmitAction = () => {
-    if (!selectedAction || !formData) return;
+    let updatedActionsList: ActionData[] = [];
 
-    // Create new action
-    const newAction: ActionData = {
-      id: `action-${Date.now()}`, // Generate a unique ID
-      type: selectedAction,
-      title: getActionTitle(selectedAction, formData),
-      status: 'pending',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      formData: formData,
-    };
+    if (editingAction) {
+      // Update existing action
+      const updatedAction: ActionData = {
+        ...editingAction,
+        title: getActionTitle(editingAction.type, formData),
+        updatedAt: new Date(),
+        formData: formData,
+      };
 
-    // Add the new action to the list
-    setActions([...actions, newAction]);
+      // Update the action in the list
+      updatedActionsList = actions.map(action =>
+          action.id === updatedAction.id ? updatedAction : action
+      );
+      setActions(updatedActionsList);
 
-    // Show success notification
-    setNotification({
-      open: true,
-      message: `${actionCards.find((a) => a.type === selectedAction)?.title} action created successfully!`,
-      severity: 'success',
-    });
+      // Show success notification
+      setNotification({
+        open: true,
+        message: `${actionCards.find((a) => a.type === updatedAction.type)?.title} action updated successfully!`,
+        severity: 'success',
+      });
+    } else if (selectedAction && formData) {
+      // Create new action
+      const newAction: ActionData = {
+        id: `action-${Date.now()}`, // Generate a unique ID
+        type: selectedAction,
+        title: getActionTitle(selectedAction, formData),
+        status: 'pending',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        formData: formData,
+      };
+
+      // Add the new action to the list
+      updatedActionsList = [...actions, newAction];
+      setActions(updatedActionsList);
+
+      // Show success notification
+      setNotification({
+        open: true,
+        message: `${actionCards.find((a) => a.type === selectedAction)?.title} action created successfully!`,
+        severity: 'success',
+      });
+    }
+
+    // Save to localStorage
+    if (updatedActionsList.length > 0) {
+      localStorage.setItem('orderedActions', JSON.stringify(updatedActionsList));
+    }
 
     // Close the form
     closeForm();
+  };
+
+  // Function to handle view details button click
+  const handleViewDetails = (action: ActionData) => {
+    // For now, only implement for rework action type
+    if (action.type === 'rework') {
+      setEditingAction(action);
+      setSelectedAction(action.type);
+      setFormData(action.formData);
+      setIsFormValid(true); // Assuming existing data is valid
+    } else {
+      // For other action types, just show a notification
+      setNotification({
+        open: true,
+        message: "Detail view is only implemented for Rework actions in this demo",
+        severity: 'info',
+      });
+    }
   };
 
   // Function to generate a meaningful title based on action type and form data
@@ -278,7 +352,7 @@ const OrderedActions: React.FC = () => {
 
     switch (type) {
       case 'rework':
-        return `Rework ${data.quantity || ''} item(s): ${data.reworkType || 'No type specified'}`;
+        return `Rework ${data.totalCost ? formatCurrency(data.totalCost) : ''} - ${data.reworkSteps?.length || 0} steps`;
 
       case 'secondary-inspection':
         return 'Secondary Inspection'; // Will be customized based on form data
@@ -300,10 +374,37 @@ const OrderedActions: React.FC = () => {
     }
   };
 
+  // Function to format currency
+  const formatCurrency = (amount: number): string =>
+      amount.toLocaleString('de-DE', {
+        style: 'currency',
+        currency: 'EUR'
+      });
+
   // Function to close notification
   const handleCloseNotification = () => {
     setNotification({ ...notification, open: false });
   };
+
+  // Function to clear all actions (for testing)
+  const handleClearAllActions = () => {
+    setActions([]);
+    localStorage.removeItem('orderedActions');
+    setNotification({
+      open: true,
+      message: 'All actions have been cleared',
+      severity: 'info',
+    });
+  };
+
+  // Save actions to localStorage whenever they change
+  useEffect(() => {
+    if (actions.length > 0) {
+      localStorage.setItem('orderedActions', JSON.stringify(actions));
+    } else {
+      localStorage.removeItem('orderedActions');
+    }
+  }, [actions]);
 
   // Render the form based on the selected action type
   const renderActionForm = () => {
@@ -313,267 +414,289 @@ const OrderedActions: React.FC = () => {
     if (!action) return null;
 
     return (
-      <Box>
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-          <IconButton onClick={handleBackToSelection} sx={{ mr: 1 }} color="primary">
-            <BackIcon />
-          </IconButton>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Box
-              sx={{
-                color: 'white',
-                bgcolor: action.color,
-                width: 36,
-                height: 36,
-                borderRadius: '50%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0,
-              }}
-            >
-              {getSmallIcon(action.type)}
+        <Box>
+          <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+            <IconButton onClick={handleBackToSelection} sx={{ mr: 1 }} color="primary">
+              <BackIcon />
+            </IconButton>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Box
+                  sx={{
+                    color: 'white',
+                    bgcolor: action.color,
+                    width: 36,
+                    height: 36,
+                    borderRadius: '50%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                  }}
+              >
+                {getSmallIcon(action.type)}
+              </Box>
+              <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+                {editingAction ? 'Edit' : 'New'} {action.title} {editingAction ? 'Details' : 'Action'}
+              </Typography>
             </Box>
-            <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-              {action.title} Action
-            </Typography>
+            <Box sx={{ flexGrow: 1 }} />
+            <IconButton onClick={handleCancelAction} color="default">
+              <CloseIcon />
+            </IconButton>
           </Box>
-          <Box sx={{ flexGrow: 1 }} />
-          <Button
-            variant="contained"
-            color="primary"
-            startIcon={<SaveIcon />}
-            onClick={handleSubmitAction}
-            disabled={!isFormValid}
-            sx={{ mr: 1 }}
-          >
-            Save
-          </Button>
-          <IconButton onClick={handleCancelAction} color="default">
-            <CloseIcon />
-          </IconButton>
+
+          <Divider sx={{ mb: 3 }} />
+
+          {editingAction && (
+              <Box sx={{ mb: 3 }}>
+                <Typography variant="subtitle1" gutterBottom>
+                  Status: <Chip label={editingAction.status} color="primary" size="small" sx={{ ml: 1 }} />
+                </Typography>
+
+                <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                  Created: {editingAction.createdAt.toLocaleDateString()}
+                  {' | '}
+                  Last Updated: {editingAction.updatedAt.toLocaleDateString()}
+                </Typography>
+              </Box>
+          )}
+
+          <Box sx={{ p: 1 }}>
+            {/* Render different forms based on action type */}
+            {selectedAction === 'rework' && (
+                <ReworkForm
+                    onFormChange={handleFormChange}
+                    initialData={formData}
+                    onSave={handleSubmitAction}
+                />
+            )}
+
+            {/* Other form types */}
+            {selectedAction === 'secondary-inspection' && (
+                <SecondaryInspectionForm onFormChange={handleFormChange} initialData={formData} />
+            )}
+
+            {selectedAction === 'give-back' && <Typography>Give Back Form would go here</Typography>}
+
+            {selectedAction === 'scrap' && <Typography>Scrap Form would go here</Typography>}
+
+            {selectedAction === '3p-selling' && (
+                <Typography>3P Selling Form would go here</Typography>
+            )}
+
+            {selectedAction === 'on-stock' && <Typography>On-Stock Form would go here</Typography>}
+          </Box>
         </Box>
-
-        <Divider sx={{ mb: 3 }} />
-
-        <Box sx={{ p: 1 }}>
-          {/* Render different forms based on action type */}
-          {selectedAction === 'rework' && (
-            <ReworkForm onFormChange={handleFormChange} initialData={formData} />
-          )}
-
-          {/* Other form types */}
-          {selectedAction === 'secondary-inspection' && (
-            <SecondaryInspectionForm onFormChange={handleFormChange} initialData={formData} />
-          )}
-
-          {selectedAction === 'give-back' && <Typography>Give Back Form would go here</Typography>}
-
-          {selectedAction === 'scrap' && <Typography>Scrap Form would go here</Typography>}
-
-          {selectedAction === '3p-selling' && (
-            <Typography>3P Selling Form would go here</Typography>
-          )}
-
-          {selectedAction === 'on-stock' && <Typography>On-Stock Form would go here</Typography>}
-        </Box>
-      </Box>
     );
   };
 
   // Empty state component
   const EmptyState = () => (
-    <Box
-      sx={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        textAlign: 'center',
-        py: 8,
-        px: 4,
-      }}
-    >
       <Box
-        sx={{
-          mb: 3,
-          width: 80,
-          height: 80,
-          borderRadius: '50%',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          backgroundColor: 'rgba(25, 118, 210, 0.1)',
-        }}
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            textAlign: 'center',
+            py: 8,
+            px: 4,
+          }}
       >
-        <AddIcon sx={{ fontSize: 40, color: 'primary.main' }} />
-      </Box>
+        <Box
+            sx={{
+              mb: 3,
+              width: 80,
+              height: 80,
+              borderRadius: '50%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: 'rgba(25, 118, 210, 0.1)',
+            }}
+        >
+          <AddIcon sx={{ fontSize: 40, color: 'primary.main' }} />
+        </Box>
 
-      <Typography variant="h6" gutterBottom>
-        No Actions Ordered Yet
-      </Typography>
-
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 4, maxWidth: 500 }}>
-        Use this section to order any actions relevant to the Claim. Actions help track and manage
-        the necessary steps to resolve the claim efficiently.
-      </Typography>
-
-      <Button
-        variant="contained"
-        color="primary"
-        size="large"
-        startIcon={<AddIcon />}
-        onClick={handleAddActionClick}
-      >
-        Add Action
-      </Button>
-    </Box>
-  );
-
-  // Action selection component
-  const ActionSelection = () => (
-    <Box>
-      <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-          Select an Action Type
+        <Typography variant="h6" gutterBottom>
+          No Actions Ordered Yet
         </Typography>
-        <IconButton onClick={handleCancelAction} color="default">
-          <CloseIcon />
-        </IconButton>
-      </Box>
 
-      <Grid container spacing={2}>
-        {actionCards.map((action) => (
-          <Grid item xs={12} sm={6} md={4} key={action.type}>
-            <Card
-              sx={{
-                height: '100%',
-                transition: 'transform 0.2s, box-shadow 0.2s',
-                '&:hover': {
-                  transform: 'translateY(-4px)',
-                  boxShadow: 4,
-                },
-              }}
-            >
-              <CardActionArea
-                onClick={() => handleActionSelect(action.type)}
-                sx={{
-                  height: '100%',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'stretch',
-                }}
-              >
-                <Box
-                  sx={{
-                    pt: 2,
-                    display: 'flex',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <Box
-                    sx={{
-                      color: 'white',
-                      bgcolor: action.color,
-                      width: 60,
-                      height: 60,
-                      borderRadius: '50%',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}
-                  >
-                    {action.iconElement}
-                  </Box>
-                </Box>
-                <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
-                  <Typography gutterBottom variant="h6" component="div" align="center">
-                    {action.title}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary" align="center">
-                    {action.description}
-                  </Typography>
-                </CardContent>
-              </CardActionArea>
-            </Card>
-          </Grid>
-        ))}
-      </Grid>
-    </Box>
-  );
-
-  // Actions list component (for when actions exist)
-  const ActionsList = () => (
-    <Box>
-      <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-          Ordered Actions
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 4, maxWidth: 500 }}>
+          Use this section to order any actions relevant to the Claim. Actions help track and manage
+          the necessary steps to resolve the claim efficiently.
         </Typography>
+
         <Button
-          variant="contained"
-          color="primary"
-          startIcon={<AddIcon />}
-          onClick={handleAddActionClick}
+            variant="contained"
+            color="primary"
+            size="large"
+            startIcon={<AddIcon />}
+            onClick={handleAddActionClick}
         >
           Add Action
         </Button>
       </Box>
+  );
 
-      {/* Show list of actions */}
-      <Grid container spacing={2}>
-        {actions.map((action) => {
-          const actionInfo = actionCards.find((a) => a.type === action.type);
+  // Action selection component
+  const ActionSelection = () => (
+      <Box sx={{ maxWidth: '100%' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+            Select an Action Type
+          </Typography>
+          <IconButton onClick={handleCancelAction} color="default">
+            <CloseIcon />
+          </IconButton>
+        </Box>
 
-          return (
-            <Grid item xs={12} key={action.id}>
-              <Paper
-                variant="outlined"
-                sx={{
-                  p: 2,
-                  borderLeft: `4px solid ${actionInfo?.color || '#ccc'}`,
-                  '&:hover': {
-                    boxShadow: 1,
-                  },
-                }}
-              >
-                <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                  {actionInfo && (
-                    <Box
+        <Grid container spacing={2} sx={{ maxWidth: '100%' }}>
+          {actionCards.map((action) => (
+              <Grid item xs={12} sm={6} md={4} key={action.type}>
+                <Card
+                    sx={{
+                      height: '100%',
+                      transition: 'transform 0.2s, box-shadow 0.2s',
+                      '&:hover': {
+                        transform: 'translateY(-4px)',
+                        boxShadow: 4,
+                      },
+                    }}
+                >
+                  <CardActionArea
+                      onClick={() => handleActionSelect(action.type)}
                       sx={{
-                        color: 'white',
-                        bgcolor: actionInfo.color || '#ccc',
-                        width: 36,
-                        height: 36,
-                        borderRadius: '50%',
+                        height: '100%',
                         display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        mr: 2,
+                        flexDirection: 'column',
+                        alignItems: 'stretch',
                       }}
+                  >
+                    <Box
+                        sx={{
+                          pt: 2,
+                          display: 'flex',
+                          justifyContent: 'center',
+                        }}
                     >
-                      {getSmallIcon(action.type)}
+                      <Box
+                          sx={{
+                            color: 'white',
+                            bgcolor: action.color,
+                            width: 60,
+                            height: 60,
+                            borderRadius: '50%',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}
+                      >
+                        {action.iconElement}
+                      </Box>
                     </Box>
-                  )}
+                    <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+                      <Typography gutterBottom variant="h6" component="div" align="center">
+                        {action.title}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary" align="center">
+                        {action.description}
+                      </Typography>
+                    </CardContent>
+                  </CardActionArea>
+                </Card>
+              </Grid>
+          ))}
+        </Grid>
+      </Box>
+  );
 
-                  <Box sx={{ flexGrow: 1 }}>
-                    <Typography variant="subtitle1" component="div">
-                      {action.title}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      Created: {action.createdAt.toLocaleDateString()} - Status: {action.status}
-                    </Typography>
-                  </Box>
+  // Actions list component (for when actions exist)
+  const ActionsList = () => (
+      <Box>
+        <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+            Ordered Actions
+          </Typography>
+          <Button
+              variant="outlined"
+              color="error"
+              onClick={handleClearAllActions}
+              sx={{ mr: 2 }}
+          >
+            Clear All
+          </Button>
+          <Button
+              variant="contained"
+              color="primary"
+              startIcon={<AddIcon />}
+              onClick={handleAddActionClick}
+          >
+            Add Action
+          </Button>
+        </Box>
 
-                  <Button variant="outlined" size="small" sx={{ mr: 1 }}>
-                    View Details
-                  </Button>
-                </Box>
-              </Paper>
-            </Grid>
-          );
-        })}
-      </Grid>
-    </Box>
+        {/* Show list of actions */}
+        <Grid container spacing={2}>
+          {actions.map((action) => {
+            const actionInfo = actionCards.find((a) => a.type === action.type);
+
+            return (
+                <Grid item xs={12} key={action.id}>
+                  <Paper
+                      variant="outlined"
+                      sx={{
+                        p: 2,
+                        borderLeft: `4px solid ${actionInfo?.color || '#ccc'}`,
+                        '&:hover': {
+                          boxShadow: 1,
+                        },
+                      }}
+                  >
+                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                      {actionInfo && (
+                          <Box
+                              sx={{
+                                color: 'white',
+                                bgcolor: actionInfo.color || '#ccc',
+                                width: 36,
+                                height: 36,
+                                borderRadius: '50%',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                mr: 2,
+                              }}
+                          >
+                            {getSmallIcon(action.type)}
+                          </Box>
+                      )}
+
+                      <Box sx={{ flexGrow: 1 }}>
+                        <Typography variant="subtitle1" component="div">
+                          {action.title}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          Created: {action.createdAt.toLocaleDateString()} - Status: {action.status}
+                        </Typography>
+                      </Box>
+
+                      <Button
+                          variant="outlined"
+                          size="small"
+                          sx={{ mr: 1 }}
+                          startIcon={<VisibilityIcon />}
+                          onClick={() => handleViewDetails(action)}
+                      >
+                        View Details
+                      </Button>
+                    </Box>
+                  </Paper>
+                </Grid>
+            );
+          })}
+        </Grid>
+      </Box>
   );
 
   // Main content based on state
@@ -593,58 +716,95 @@ const OrderedActions: React.FC = () => {
     return <EmptyState />;
   };
 
+  // Add CSS to ensure the component fits within its container
+  // This style hack helps prevent the component from affecting parent layout
+  const componentStyle = `
+    .ordered-actions-root {
+      width: 100%;
+      max-width: 100%;
+      overflow-x: hidden;
+    }
+    .ordered-actions-paper {
+      width: 100%;
+      max-width: 100%;
+      overflow-x: hidden;
+    }
+    .ordered-actions-content {
+      max-width: 100%;
+    }
+  `;
+
   return (
-    <Box>
-      <Typography variant="h5" gutterBottom>
-        Ordered Actions
-      </Typography>
+      <>
+        {/* Inject CSS to fix layout issues */}
+        <style>{componentStyle}</style>
 
-      <Paper
-        variant="outlined"
-        sx={{
-          borderRadius: 2,
-          overflow: 'hidden',
-        }}
-      >
-        <Box sx={{ p: 2 }}>{renderContent()}</Box>
-      </Paper>
-
-      {/* Confirmation Dialog */}
-      <Dialog
-        open={showConfirmation}
-        onClose={handleCancelDiscard}
-        TransitionComponent={Transition}
-        aria-labelledby="discard-dialog-title"
-        aria-describedby="discard-dialog-description"
-      >
-        <DialogTitle id="discard-dialog-title">Discard Changes?</DialogTitle>
-        <DialogContent>
-          <Typography id="discard-dialog-description">
-            You have unsaved changes that will be lost. Are you sure you want to continue?
+        <Box className="ordered-actions-root" sx={{ width: '100%', maxWidth: '100%' }}>
+          <Typography variant="h5" gutterBottom>
+            Ordered Actions
           </Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCancelDiscard} color="primary">
-            Cancel
-          </Button>
-          <Button onClick={handleConfirmDiscard} color="error" autoFocus>
-            Discard
-          </Button>
-        </DialogActions>
-      </Dialog>
 
-      {/* Notification Snackbar */}
-      <Snackbar
-        open={notification.open}
-        autoHideDuration={6000}
-        onClose={handleCloseNotification}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-      >
-        <Alert onClose={handleCloseNotification} severity={notification.severity} variant="filled">
-          {notification.message}
-        </Alert>
-      </Snackbar>
-    </Box>
+          <Paper
+              className="ordered-actions-paper"
+              variant="outlined"
+              sx={{
+                borderRadius: 2,
+                width: '100%',
+                maxWidth: '100%',
+                boxSizing: 'border-box',
+              }}
+          >
+            <Box
+                className="ordered-actions-content"
+                sx={{
+                  p: 2,
+                  width: '100%',
+                  maxWidth: '100%',
+                  boxSizing: 'border-box',
+                  overflow: 'auto'
+                }}
+            >
+              {renderContent()}
+            </Box>
+          </Paper>
+
+          {/* Confirmation Dialog */}
+          <Dialog
+              open={showConfirmation}
+              onClose={handleCancelDiscard}
+              TransitionComponent={Transition}
+              aria-labelledby="discard-dialog-title"
+              aria-describedby="discard-dialog-description"
+          >
+            <DialogTitle id="discard-dialog-title">Discard Changes?</DialogTitle>
+            <DialogContent>
+              <Typography id="discard-dialog-description">
+                You have unsaved changes that will be lost. Are you sure you want to continue?
+              </Typography>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleCancelDiscard} color="primary">
+                Cancel
+              </Button>
+              <Button onClick={handleConfirmDiscard} color="error" autoFocus>
+                Discard
+              </Button>
+            </DialogActions>
+          </Dialog>
+
+          {/* Notification Snackbar */}
+          <Snackbar
+              open={notification.open}
+              autoHideDuration={6000}
+              onClose={handleCloseNotification}
+              anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+          >
+            <Alert onClose={handleCloseNotification} severity={notification.severity} variant="filled">
+              {notification.message}
+            </Alert>
+          </Snackbar>
+        </Box>
+      </>
   );
 };
 
