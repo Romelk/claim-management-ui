@@ -1,10 +1,12 @@
 import ReworkForm from './ReworkForm';
 import SecondaryInspectionForm from './SecondaryInspectionForm';
+import GivebackForm from './Giveback/GivebackForm';
 
 // Export all form components
 export {
   ReworkForm,
   SecondaryInspectionForm,
+  GivebackForm,
   // Add other form components as they are created
 };
 
@@ -40,6 +42,16 @@ export interface SecondaryInspectionFormData extends BaseFormData {
   notes: string;
 }
 
+export interface GivebackFormData extends BaseFormData {
+  quantity: number;
+  destination: string;
+  reason: string;
+  shippingMethod: string;
+  assignedTo: string[];
+  trackShipping: boolean;
+  additionalInstructions: string;
+}
+
 // Helper function for date handling
 export const getTodayString = (): string => {
   const today = new Date();
@@ -51,10 +63,12 @@ export const getTodayString = (): string => {
 export const ActionForms = {
   rework: ReworkForm,
   'secondary-inspection': SecondaryInspectionForm,
+  'give-back': GivebackForm,
   // Add other mappings as forms are created
 };
 
 export default {
   ReworkForm,
   SecondaryInspectionForm,
+  GivebackForm,
 };

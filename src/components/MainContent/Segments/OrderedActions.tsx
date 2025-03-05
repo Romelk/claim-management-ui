@@ -30,12 +30,20 @@ import {
   Close as CloseIcon,
   Save as SaveIcon,
   Visibility as VisibilityIcon,
+  Assignment as OrderedActionsIcon,
 } from '@mui/icons-material';
 import { TransitionProps } from '@mui/material/transitions';
 import { Slide } from '@mui/material';
 
 // Import Form Components
-import { ReworkForm, SecondaryInspectionForm } from './OrderedActions/Forms';
+//import { ReworkForm, SecondaryInspectionForm } from './OrderedActions/Forms';
+//import { ReworkForm } from './OrderedActions/Forms';
+//import SecondaryInspectionForm from './OrderedActions/Forms/SecondaryInspectionForm';
+
+import { ReworkForm } from './OrderedActions/Forms';
+import { GivebackForm } from './OrderedActions/Forms/Giveback';
+import SecondaryInspectionForm from './OrderedActions/Forms/SecondaryInspectionForm';
+import OnStockForm from './OrderedActions/Forms/OnStock';
 
 // Action type definitions
 type ActionType =
@@ -64,6 +72,13 @@ interface ActionCard {
   description: string;
   iconElement: React.ReactElement;
   color: string;
+}
+
+interface SecondaryInspectionFormProps {
+  onFormChange: (data: any) => void;
+  initialData?: Partial<SecondaryInspectionFormData>;
+  onSave?: () => void;
+  editMode?: boolean; // New prop to indicate edit mode
 }
 
 // Define the action cards with their metadata
@@ -331,7 +346,7 @@ const OrderedActions: React.FC = () => {
   // Function to handle view details button click
   const handleViewDetails = (action: ActionData) => {
     // For now, only implement for rework action type
-    if (action.type === 'rework') {
+    if (action.type === 'rework' || action.type === 'secondary-inspection'|| action.type === 'give-back'|| action.type === 'on-stock') {
       setEditingAction(action);
       setSelectedAction(action.type);
       setFormData(action.formData);
@@ -340,7 +355,8 @@ const OrderedActions: React.FC = () => {
       // For other action types, just show a notification
       setNotification({
         open: true,
-        message: "Detail view is only implemented for Rework actions in this demo",
+        message: `Detail view is not yet implemented for ${actionCards.find((a) => a.type === action.type)?.title || 'this'} actions`,
+        //message: "Detail view is only implemented for Rework actions in this demo",
         severity: 'info',
       });
     }
@@ -355,10 +371,14 @@ const OrderedActions: React.FC = () => {
         return `Rework ${data.totalCost ? formatCurrency(data.totalCost) : ''} - ${data.reworkSteps?.length || 0} steps`;
 
       case 'secondary-inspection':
-        return 'Secondary Inspection'; // Will be customized based on form data
+        const quantity = data.quantity || 0;
+        const stepsCount = data.steps?.length || 0;
+        const party = data.responsibleParty === 'supplier' ? 'Supplier' : 'Partner';
+        return `Secondary Inspection - ${quantity} items, ${stepsCount} steps (${party})`;
+
 
       case 'give-back':
-        return 'Give Back'; // Will be customized based on form data
+        return `Giveback ${data.totalCost ? formatCurrency(data.totalCost) : ''} - ${data.givebackSteps?.length || 0} steps`;// Will be customized based on form data
 
       case 'scrap':
         return 'Scrap Items'; // Will be customized based on form data
@@ -367,7 +387,7 @@ const OrderedActions: React.FC = () => {
         return '3P Selling'; // Will be customized based on form data
 
       case 'on-stock':
-        return 'On-Stock'; // Will be customized based on form data
+        return `On-Stock - ${data.quantity || 0} items (${data.invoiceDiscountPercent || 0}% discount)`;
 
       default:
         return actionInfo?.title || 'New Action';
@@ -383,7 +403,7 @@ const OrderedActions: React.FC = () => {
 
   // Function to close notification
   const handleCloseNotification = () => {
-    setNotification({ ...notification, open: false });
+    setNotification({...notification, open: false});
   };
 
   // Function to clear all actions (for testing)
@@ -407,6 +427,7 @@ const OrderedActions: React.FC = () => {
   }, [actions]);
 
   // Render the form based on the selected action type
+  // Update the renderActionForm function for better spacing
   const renderActionForm = () => {
     if (!selectedAction) return null;
 
@@ -415,11 +436,22 @@ const OrderedActions: React.FC = () => {
 
     return (
         <Box>
-          <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-            <IconButton onClick={handleBackToSelection} sx={{ mr: 1 }} color="primary">
-              <BackIcon />
+          <Box sx={{
+            display: 'flex',
+            alignItems: 'center',
+            mb: 2,  // Reduced from mb: 3
+            px: 2,   // Add horizontal padding
+            pt: 1.5  // Add top padding
+          }}>
+            <IconButton
+                onClick={handleBackToSelection}
+                sx={{mr: 1}}
+                color="primary"
+                aria-label="Back to Ordered Actions"
+            >
+              <BackIcon/>
             </IconButton>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Box sx={{display: 'flex', alignItems: 'center', gap: 1}}>
               <Box
                   sx={{
                     color: 'white',
@@ -435,22 +467,22 @@ const OrderedActions: React.FC = () => {
               >
                 {getSmallIcon(action.type)}
               </Box>
-              <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+              <Typography variant="h6" component="div" sx={{flexGrow: 1}}>
                 {editingAction ? 'Edit' : 'New'} {action.title} {editingAction ? 'Details' : 'Action'}
               </Typography>
             </Box>
-            <Box sx={{ flexGrow: 1 }} />
+            <Box sx={{flexGrow: 1}}/>
             <IconButton onClick={handleCancelAction} color="default">
-              <CloseIcon />
+              <CloseIcon/>
             </IconButton>
           </Box>
 
-          <Divider sx={{ mb: 3 }} />
+          <Divider sx={{mb: 2}}/> {/* Reduced from mb: 3 */}
 
           {editingAction && (
-              <Box sx={{ mb: 3 }}>
+              <Box sx={{mb: 2, px: 2}}> {/* Reduced from mb: 3, added px: 2 */}
                 <Typography variant="subtitle1" gutterBottom>
-                  Status: <Chip label={editingAction.status} color="primary" size="small" sx={{ ml: 1 }} />
+                  Status: <Chip label={editingAction.status} color="primary" size="small" sx={{ml: 1}}/>
                 </Typography>
 
                 <Typography variant="subtitle2" color="text.secondary" gutterBottom>
@@ -461,7 +493,7 @@ const OrderedActions: React.FC = () => {
               </Box>
           )}
 
-          <Box sx={{ p: 1 }}>
+          <Box sx={{px: 2}}> {/* Added horizontal padding for consistent alignment */}
             {/* Render different forms based on action type */}
             {selectedAction === 'rework' && (
                 <ReworkForm
@@ -473,10 +505,21 @@ const OrderedActions: React.FC = () => {
 
             {/* Other form types */}
             {selectedAction === 'secondary-inspection' && (
-                <SecondaryInspectionForm onFormChange={handleFormChange} initialData={formData} />
+                <SecondaryInspectionForm
+                    onFormChange={handleFormChange}
+                    initialData={formData}
+                    onSave={handleSubmitAction}
+                    editMode={!!editingAction}
+                />
             )}
 
-            {selectedAction === 'give-back' && <Typography>Give Back Form would go here</Typography>}
+            {selectedAction === 'give-back' && (
+                <GivebackForm
+                    onFormChange={handleFormChange}
+                    initialData={formData}
+                    onSave={handleSubmitAction}
+                />
+            )}
 
             {selectedAction === 'scrap' && <Typography>Scrap Form would go here</Typography>}
 
@@ -484,7 +527,13 @@ const OrderedActions: React.FC = () => {
                 <Typography>3P Selling Form would go here</Typography>
             )}
 
-            {selectedAction === 'on-stock' && <Typography>On-Stock Form would go here</Typography>}
+            {selectedAction === 'on-stock' && (
+                <OnStockForm
+                    onFormChange={handleFormChange}
+                    initialData={formData}
+                    onSave={handleSubmitAction}
+                />
+            )}
           </Box>
         </Box>
     );
@@ -515,14 +564,14 @@ const OrderedActions: React.FC = () => {
               backgroundColor: 'rgba(25, 118, 210, 0.1)',
             }}
         >
-          <AddIcon sx={{ fontSize: 40, color: 'primary.main' }} />
+          <AddIcon sx={{fontSize: 40, color: 'primary.main'}}/>
         </Box>
 
         <Typography variant="h6" gutterBottom>
           No Actions Ordered Yet
         </Typography>
 
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 4, maxWidth: 500 }}>
+        <Typography variant="body2" color="text.secondary" sx={{mb: 4, maxWidth: 500}}>
           Use this section to order any actions relevant to the Claim. Actions help track and manage
           the necessary steps to resolve the claim efficiently.
         </Typography>
@@ -531,7 +580,7 @@ const OrderedActions: React.FC = () => {
             variant="contained"
             color="primary"
             size="large"
-            startIcon={<AddIcon />}
+            startIcon={<AddIcon/>}
             onClick={handleAddActionClick}
         >
           Add Action
@@ -541,17 +590,17 @@ const OrderedActions: React.FC = () => {
 
   // Action selection component
   const ActionSelection = () => (
-      <Box sx={{ maxWidth: '100%' }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+      <Box sx={{maxWidth: '100%'}}>
+        <Box sx={{display: 'flex', alignItems: 'center', mb: 3}}>
+          <Typography variant="h6" component="div" sx={{flexGrow: 1}}>
             Select an Action Type
           </Typography>
           <IconButton onClick={handleCancelAction} color="default">
-            <CloseIcon />
+            <CloseIcon/>
           </IconButton>
         </Box>
 
-        <Grid container spacing={2} sx={{ maxWidth: '100%' }}>
+        <Grid container spacing={2} sx={{maxWidth: '100%'}}>
           {actionCards.map((action) => (
               <Grid item xs={12} sm={6} md={4} key={action.type}>
                 <Card
@@ -595,7 +644,7 @@ const OrderedActions: React.FC = () => {
                         {action.iconElement}
                       </Box>
                     </Box>
-                    <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+                    <CardContent sx={{flexGrow: 1, display: 'flex', flexDirection: 'column'}}>
                       <Typography gutterBottom variant="h6" component="div" align="center">
                         {action.title}
                       </Typography>
@@ -614,22 +663,22 @@ const OrderedActions: React.FC = () => {
   // Actions list component (for when actions exist)
   const ActionsList = () => (
       <Box>
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+        <Box sx={{display: 'flex', alignItems: 'center', mb: 3}}>
+          <Typography variant="h6" component="div" sx={{flexGrow: 1}}>
             Ordered Actions
           </Typography>
           <Button
               variant="outlined"
               color="error"
               onClick={handleClearAllActions}
-              sx={{ mr: 2 }}
+              sx={{mr: 2}}
           >
             Clear All
           </Button>
           <Button
               variant="contained"
               color="primary"
-              startIcon={<AddIcon />}
+              startIcon={<AddIcon/>}
               onClick={handleAddActionClick}
           >
             Add Action
@@ -653,7 +702,7 @@ const OrderedActions: React.FC = () => {
                         },
                       }}
                   >
-                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    <Box sx={{display: 'flex', alignItems: 'center'}}>
                       {actionInfo && (
                           <Box
                               sx={{
@@ -672,7 +721,7 @@ const OrderedActions: React.FC = () => {
                           </Box>
                       )}
 
-                      <Box sx={{ flexGrow: 1 }}>
+                      <Box sx={{flexGrow: 1}}>
                         <Typography variant="subtitle1" component="div">
                           {action.title}
                         </Typography>
@@ -684,8 +733,8 @@ const OrderedActions: React.FC = () => {
                       <Button
                           variant="outlined"
                           size="small"
-                          sx={{ mr: 1 }}
-                          startIcon={<VisibilityIcon />}
+                          sx={{mr: 1}}
+                          startIcon={<VisibilityIcon/>}
                           onClick={() => handleViewDetails(action)}
                       >
                         View Details
@@ -702,7 +751,7 @@ const OrderedActions: React.FC = () => {
   // Main content based on state
   const renderContent = () => {
     if (actions.length > 0 && !isSelectingAction && !selectedAction) {
-      return <ActionsList />;
+      return <ActionsList/>;
     }
 
     if (selectedAction) {
@@ -710,10 +759,10 @@ const OrderedActions: React.FC = () => {
     }
 
     if (isSelectingAction) {
-      return <ActionSelection />;
+      return <ActionSelection/>;
     }
 
-    return <EmptyState />;
+    return <EmptyState/>;
   };
 
   // Add CSS to ensure the component fits within its container
@@ -734,15 +783,50 @@ const OrderedActions: React.FC = () => {
     }
   `;
 
+// In OrderedActions.tsx, find the return statement section and modify it like this:
+
+// In OrderedActions.tsx, find the return statement section and modify it like this:
+
+  // Complete and correct return statement for OrderedActions.tsx
   return (
       <>
         {/* Inject CSS to fix layout issues */}
         <style>{componentStyle}</style>
 
-        <Box className="ordered-actions-root" sx={{ width: '100%', maxWidth: '100%' }}>
-          <Typography variant="h5" gutterBottom>
-            Ordered Actions
-          </Typography>
+        <Box className="ordered-actions-root" sx={{width: '100%', maxWidth: '100%'}}>
+          {!selectedAction && (
+              // Only show the header when no action is selected
+              <Box sx={{
+                mb: 4,
+                mt: 2,
+                px: 2
+              }}>
+                <Typography
+                    variant="h5"
+                    gutterBottom
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      fontWeight: 'bold',
+                      color: 'primary.main',
+                      mb: 1.5
+                    }}
+                >
+                  <OrderedActionsIcon sx={{mr: 2}}/>
+                  Ordered Actions
+                </Typography>
+                <Typography
+                    variant="body1"
+                    color="text.secondary"
+                    sx={{
+                      mb: 2,
+                      pr: 4
+                    }}
+                >
+                  Track and manage all actions related to this claim, from rework to inspection and beyond
+                </Typography>
+              </Box>
+          )}
 
           <Paper
               className="ordered-actions-paper"
@@ -757,7 +841,7 @@ const OrderedActions: React.FC = () => {
             <Box
                 className="ordered-actions-content"
                 sx={{
-                  p: 2,
+                  p: selectedAction ? {xs: 0, sm: 1} : 2, // Remove padding when showing a form
                   width: '100%',
                   maxWidth: '100%',
                   boxSizing: 'border-box',
@@ -797,7 +881,7 @@ const OrderedActions: React.FC = () => {
               open={notification.open}
               autoHideDuration={6000}
               onClose={handleCloseNotification}
-              anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+              anchorOrigin={{vertical: 'bottom', horizontal: 'right'}}
           >
             <Alert onClose={handleCloseNotification} severity={notification.severity} variant="filled">
               {notification.message}
@@ -807,5 +891,4 @@ const OrderedActions: React.FC = () => {
       </>
   );
 };
-
 export default OrderedActions;

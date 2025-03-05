@@ -3,10 +3,10 @@ import React, { useState } from 'react';
 import { Box, Typography, IconButton, Tooltip, Divider, Chip, Button } from '@mui/material';
 import {
     Inventory as ProductIcon,
-    Description as DocumentIcon,
-    Receipt as InvoiceIcon,
+    FormatListBulleted as CharacteristicsIcon,
+    Image as ImagesIcon,
     LocalShipping as DeliveryIcon,
-    List as ListIcon,
+    List as InspectionIcon,
     Close as CloseIcon,
     Add as AddIcon,
     CalendarToday as CalendarIcon,
@@ -19,7 +19,15 @@ import {
     Archive as ZipIcon,
     ChevronRight as ChevronRightIcon,
     ChevronLeft as ChevronLeftIcon,
+    ExpandMore as ExpandMoreIcon,
+    Edit as EditIcon,
+    Save as SaveIcon,
+    Cancel as CancelIcon,
+    Delete as DeleteIcon,
 } from '@mui/icons-material';
+
+// Import the updated inspection content component
+import InspectionContent from './InspectionContent';
 
 // Sample product data
 const productDetails = {
@@ -33,32 +41,25 @@ const productDetails = {
     enclosures: '-',
 };
 
-// Sample document data
-const documentData = [
-    { id: 'doc1', name: 'Claim Documentation.pdf', type: 'PDF', date: '23 Feb 2025', size: '1.2 MB' },
-    { id: 'doc2', name: 'Inspection Report.docx', type: 'DOCX', date: '24 Feb 2025', size: '546 KB' },
-    { id: 'doc3', name: 'Supporting Images.zip', type: 'ZIP', date: '24 Feb 2025', size: '3.8 MB' },
-];
-
-// Sample invoice data
-const invoiceDetails = {
-    invoiceNumber: 'INV-2025-0234',
-    date: '21 Feb 2025',
-    dueDate: '07 Mar 2025',
-    totalAmount: '$329.99',
-    status: 'Pending',
-    paymentMethod: 'Credit Card',
-    items: [
-        {
-            id: 1,
-            description: 'Tommy Hilfiger Sweatshirt',
-            quantity: 1,
-            unitPrice: '$299.99',
-            total: '$299.99',
-        },
-        { id: 2, description: 'Shipping Fee', quantity: 1, unitPrice: '$30.00', total: '$30.00' },
-    ],
+// Sample characteristics data
+const characteristicsDetails = {
+    material: 'Cotton (80%), Polyester (20%)',
+    size: 'Medium',
+    weight: '350g',
+    dimensions: '60 × 40 × 2 cm',
+    color: 'Navy Blue',
+    pattern: 'Solid',
+    features: ['Long sleeves', 'Crew neck', 'Ribbed cuffs', 'Machine washable'],
+    careInstructions: 'Machine wash cold, tumble dry low'
 };
+
+// Sample images data
+const imagesData = [
+    { id: 'img1', name: 'Front View', url: '/placeholder-1.jpg', dateAdded: '23 Feb 2025', isPrimary: true },
+    { id: 'img2', name: 'Back View', url: '/placeholder-2.jpg', dateAdded: '23 Feb 2025', isPrimary: false },
+    { id: 'img3', name: 'Detail Shot', url: '/placeholder-3.jpg', dateAdded: '23 Feb 2025', isPrimary: false },
+    { id: 'img4', name: 'Defect Close-up', url: '/placeholder-4.jpg', dateAdded: '24 Feb 2025', isPrimary: false },
+];
 
 // Sample delivery data
 const deliveryDetails = {
@@ -171,217 +172,161 @@ const ProductContent: React.FC<ContentProps> = ({ onClose }) => (
     </>
 );
 
-const DocumentContent: React.FC<ContentProps> = ({ onClose }) => {
-    // Get icon based on document type
-    const getDocumentIcon = (type: string) => {
-        switch (type) {
-            case 'PDF':
-                return <PdfIcon sx={{ mr: 1.5, color: '#f44336' }} />;
-            case 'DOCX':
-                return <DocIcon sx={{ mr: 1.5, color: '#1976d2' }} />;
-            case 'ZIP':
-                return <ZipIcon sx={{ mr: 1.5, color: '#ff9800' }} />;
-            default:
-                return <FileIcon sx={{ mr: 1.5, color: 'text.secondary' }} />;
-        }
-    };
-
-    return (
-        <>
-            <Box sx={{ p: 2, overflowY: 'auto', height: 'calc(100% - 56px)' }}>
-                <Typography variant="subtitle1" sx={{ mb: 2 }}>
-                    Claim Documents
-                </Typography>
-
-                {/* Document List */}
-                <Box sx={{ mb: 3 }}>
-                    {documentData.map((document) => (
-                        <Box
-                            key={document.id}
-                            sx={{
-                                p: 2,
-                                mb: 2,
-                                border: '1px solid',
-                                borderColor: 'divider',
-                                borderRadius: 1,
-                                transition: 'all 0.2s ease',
-                                '&:hover': {
-                                    borderColor: 'primary.main',
-                                    boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-                                },
-                            }}
-                        >
-                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                                {getDocumentIcon(document.type)}
-                                <Typography variant="subtitle1" fontWeight="medium">
-                                    {document.name}
-                                </Typography>
-                            </Box>
-
-                            <Box
-                                sx={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'space-between',
-                                    mt: 1.5,
-                                }}
-                            >
-                                <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                    <Chip
-                                        label={document.type}
-                                        size="small"
-                                        sx={{
-                                            borderRadius: 1,
-                                            bgcolor: 'action.hover',
-                                            color: 'text.primary',
-                                            fontWeight: 'medium',
-                                            mr: 1.5,
-                                        }}
-                                    />
-                                    <Typography variant="body2" color="text.secondary">
-                                        {document.size}
-                                    </Typography>
-                                </Box>
-
-                                <Box>
-                                    <IconButton size="small" aria-label="view">
-                                        <VisibilityIcon fontSize="small" />
-                                    </IconButton>
-                                    <IconButton size="small" aria-label="download">
-                                        <DownloadIcon fontSize="small" />
-                                    </IconButton>
-                                </Box>
-                            </Box>
-
-                            <Typography variant="body2" color="text.secondary" sx={{ mt: 1.5 }}>
-                                Uploaded: {document.date}
-                            </Typography>
-                        </Box>
-                    ))}
-                </Box>
-
-                {/* Upload Button */}
-                <Button
-                    variant="contained"
-                    startIcon={<AddIcon />}
-                    fullWidth
-                    size="medium"
-                    sx={{
-                        py: 1.5,
-                        borderRadius: 1,
-                    }}
-                >
-                    UPLOAD DOCUMENT
-                </Button>
-            </Box>
-        </>
-    );
-};
-
-const InvoiceContent: React.FC<ContentProps> = ({ onClose }) => (
+const CharacteristicsContent: React.FC<ContentProps> = ({ onClose }) => (
     <>
         <Box sx={{ p: 2, overflowY: 'auto', height: 'calc(100% - 56px)' }}>
-            <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Typography variant="h6">{invoiceDetails.invoiceNumber}</Typography>
-                <Chip
-                    label={invoiceDetails.status}
-                    color={invoiceDetails.status === 'Paid' ? 'success' : 'warning'}
-                    size="small"
-                />
+            <Box sx={{ mb: 3 }}>
+                <Typography variant="body2" color="text.secondary" gutterBottom>
+                    Material
+                </Typography>
+                <Typography variant="body1" fontWeight="medium">
+                    {characteristicsDetails.material}
+                </Typography>
             </Box>
-
-            <Divider sx={{ my: 2 }} />
 
             <Box sx={{ mb: 3 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                    <CalendarIcon sx={{ color: 'text.secondary', fontSize: 18, mr: 1 }} />
-                    <Typography variant="body2" color="text.secondary">
-                        Invoice Date:
-                    </Typography>
-                    <Typography variant="body2" sx={{ ml: 1 }}>
-                        {invoiceDetails.date}
-                    </Typography>
-                </Box>
-
-                <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                    <CalendarIcon sx={{ color: 'text.secondary', fontSize: 18, mr: 1 }} />
-                    <Typography variant="body2" color="text.secondary">
-                        Due Date:
-                    </Typography>
-                    <Typography variant="body2" sx={{ ml: 1 }}>
-                        {invoiceDetails.dueDate}
-                    </Typography>
-                </Box>
-
-                <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    <PaymentsIcon sx={{ color: 'text.secondary', fontSize: 18, mr: 1 }} />
-                    <Typography variant="body2" color="text.secondary">
-                        Payment Method:
-                    </Typography>
-                    <Typography variant="body2" sx={{ ml: 1 }}>
-                        {invoiceDetails.paymentMethod}
-                    </Typography>
-                </Box>
+                <Typography variant="body2" color="text.secondary" gutterBottom>
+                    Size
+                </Typography>
+                <Typography variant="body1" fontWeight="medium">
+                    {characteristicsDetails.size}
+                </Typography>
             </Box>
 
-            <Divider sx={{ my: 2 }} />
+            <Box sx={{ mb: 3 }}>
+                <Typography variant="body2" color="text.secondary" gutterBottom>
+                    Weight
+                </Typography>
+                <Typography variant="body1" fontWeight="medium">
+                    {characteristicsDetails.weight}
+                </Typography>
+            </Box>
 
-            <Typography variant="subtitle2" sx={{ mb: 2 }}>
-                Line Items
+            <Box sx={{ mb: 3 }}>
+                <Typography variant="body2" color="text.secondary" gutterBottom>
+                    Dimensions
+                </Typography>
+                <Typography variant="body1" fontWeight="medium">
+                    {characteristicsDetails.dimensions}
+                </Typography>
+            </Box>
+
+            <Box sx={{ mb: 3 }}>
+                <Typography variant="body2" color="text.secondary" gutterBottom>
+                    Color
+                </Typography>
+                <Typography variant="body1" fontWeight="medium">
+                    {characteristicsDetails.color}
+                </Typography>
+            </Box>
+
+            <Box sx={{ mb: 3 }}>
+                <Typography variant="body2" color="text.secondary" gutterBottom>
+                    Pattern
+                </Typography>
+                <Typography variant="body1" fontWeight="medium">
+                    {characteristicsDetails.pattern}
+                </Typography>
+            </Box>
+
+            <Box sx={{ mb: 3 }}>
+                <Typography variant="body2" color="text.secondary" gutterBottom>
+                    Features
+                </Typography>
+                {characteristicsDetails.features.map((feature, index) => (
+                    <Typography key={index} variant="body1" sx={{ mb: 0.5 }}>
+                        • {feature}
+                    </Typography>
+                ))}
+            </Box>
+
+            <Box sx={{ mb: 3 }}>
+                <Typography variant="body2" color="text.secondary" gutterBottom>
+                    Care Instructions
+                </Typography>
+                <Typography variant="body1" fontWeight="medium">
+                    {characteristicsDetails.careInstructions}
+                </Typography>
+            </Box>
+        </Box>
+    </>
+);
+
+const ImagesContent: React.FC<ContentProps> = ({ onClose }) => (
+    <>
+        <Box sx={{ p: 2, overflowY: 'auto', height: 'calc(100% - 56px)' }}>
+            <Typography variant="subtitle1" sx={{ mb: 2 }}>
+                Article Images
             </Typography>
 
-            {invoiceDetails.items.map((item) => (
-                <Box
-                    key={item.id}
-                    sx={{
-                        mb: 2,
-                        pb: 2,
-                        borderBottom:
-                            item.id < invoiceDetails.items.length ? '1px dashed rgba(0, 0, 0, 0.1)' : 'none',
-                    }}
-                >
-                    <Typography variant="body2" fontWeight="medium">
-                        {item.description}
-                    </Typography>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 1 }}>
-                        <Typography variant="body2" color="text.secondary">
-                            {item.quantity} × {item.unitPrice}
-                        </Typography>
-                        <Typography variant="body2" fontWeight="medium">
-                            {item.total}
-                        </Typography>
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 3 }}>
+                {imagesData.map((image) => (
+                    <Box
+                        key={image.id}
+                        sx={{
+                            width: 'calc(50% - 8px)',
+                            mb: 2,
+                            position: 'relative',
+                            borderRadius: 1,
+                            overflow: 'hidden',
+                            border: '1px solid',
+                            borderColor: 'divider',
+                        }}
+                    >
+                        <Box
+                            sx={{
+                                height: 150,
+                                bgcolor: 'action.hover',
+                                position: 'relative',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                            }}
+                        >
+                            <Typography variant="body2" color="text.secondary">
+                                {image.name}
+                            </Typography>
+                            {image.isPrimary && (
+                                <Chip
+                                    label="Primary"
+                                    size="small"
+                                    color="primary"
+                                    sx={{
+                                        position: 'absolute',
+                                        top: 8,
+                                        right: 8,
+                                    }}
+                                />
+                            )}
+                        </Box>
+                        <Box sx={{ p: 1 }}>
+                            <Typography variant="caption" color="text.secondary">
+                                Added: {image.dateAdded}
+                            </Typography>
+                            <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1 }}>
+                                <IconButton size="small" aria-label="view">
+                                    <VisibilityIcon fontSize="small" />
+                                </IconButton>
+                                <IconButton size="small" aria-label="download">
+                                    <DownloadIcon fontSize="small" />
+                                </IconButton>
+                            </Box>
+                        </Box>
                     </Box>
-                </Box>
-            ))}
-
-            <Box
-                sx={{
-                    bgcolor: '#f5f5f5',
-                    p: 2,
-                    borderRadius: 1,
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    mt: 3,
-                }}
-            >
-                <Typography variant="subtitle2">Total</Typography>
-                <Typography variant="subtitle1" fontWeight="bold">
-                    {invoiceDetails.totalAmount}
-                </Typography>
+                ))}
             </Box>
 
             <Button
                 variant="contained"
-                startIcon={<DownloadIcon />}
+                startIcon={<AddIcon />}
                 fullWidth
+                size="medium"
                 sx={{
-                    bgcolor: '#673ab7',
-                    '&:hover': { bgcolor: '#5e35b1' },
-                    textTransform: 'uppercase',
-                    mt: 3,
+                    py: 1.5,
+                    borderRadius: 1,
                 }}
             >
-                Download Invoice
+                ADD IMAGE
             </Button>
         </Box>
     </>
@@ -523,76 +468,6 @@ const DeliveryContent: React.FC<ContentProps> = ({ onClose }) => (
     </>
 );
 
-const InspectionContent: React.FC<ContentProps> = ({ onClose }) => (
-    <>
-        <Box sx={{ p: 2, overflowY: 'auto', height: 'calc(100% - 56px)' }}>
-            <Typography variant="body2" color="text.secondary" gutterBottom>
-                E2E-GI-InspectionStepDescription1
-            </Typography>
-
-            <Box
-                sx={{
-                    mt: 2,
-                    p: 2,
-                    bgcolor: '#f8f8f8',
-                    borderRadius: 1,
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                }}
-            >
-                <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    <Box
-                        component="span"
-                        sx={{
-                            display: 'inline-flex',
-                            mr: 2,
-                            color: '#d32f2f',
-                        }}
-                    >
-                        <AddIcon fontSize="small" />
-                    </Box>
-                    <Typography fontWeight="medium">Inspection Issue</Typography>
-                </Box>
-                <Button
-                    variant="contained"
-                    startIcon={<AddIcon />}
-                    sx={{
-                        bgcolor: '#d32f2f',
-                        '&:hover': { bgcolor: '#b71c1c' },
-                        textTransform: 'uppercase',
-                        fontWeight: 'bold',
-                        fontSize: '0.75rem',
-                    }}
-                >
-                    Add
-                </Button>
-            </Box>
-
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 'auto', pt: 4 }}>
-                <Button variant="outlined" sx={{ textTransform: 'uppercase' }}>
-                    Previous
-                </Button>
-                <Box sx={{ display: 'flex', gap: 2 }}>
-                    <Button variant="outlined" sx={{ textTransform: 'uppercase' }}>
-                        Skip
-                    </Button>
-                    <Button
-                        variant="contained"
-                        sx={{
-                            bgcolor: '#d32f2f',
-                            '&:hover': { bgcolor: '#b71c1c' },
-                            textTransform: 'uppercase',
-                        }}
-                    >
-                        Finish this step
-                    </Button>
-                </Box>
-            </Box>
-        </Box>
-    </>
-);
-
 // Main component
 const InformationPanel: React.FC<{
     activePanel: string;
@@ -600,42 +475,42 @@ const InformationPanel: React.FC<{
     isCollapsed: boolean;
     onToggleCollapse: () => void;
 }> = ({ activePanel, onPanelChange, isCollapsed, onToggleCollapse }) => {
-    // Panel options
+    // Panel options - Updated to match requirements
     const panels: PanelOption[] = [
+        {
+            id: 'inspection',
+            icon: <InspectionIcon />,
+            label: 'Inspection Details',
+            color: '#f44336',
+            tooltip: 'View Inspection Details',
+        },
         {
             id: 'product',
             icon: <ProductIcon />,
-            label: 'Product',
-            color: '#d32f2f',
+            label: 'Product Details',
+            color: '#1976d2',
             tooltip: 'View Product Details',
         },
         {
-            id: 'document',
-            icon: <DocumentIcon />,
-            label: 'Document',
-            color: '#1976d2',
-            tooltip: 'View Documents',
+            id: 'characteristics',
+            icon: <CharacteristicsIcon />,
+            label: 'Characteristics',
+            color: '#673ab7',
+            tooltip: 'View Characteristics',
         },
         {
-            id: 'invoice',
-            icon: <InvoiceIcon />,
-            label: 'Invoice',
-            color: '#673ab7',
-            tooltip: 'View Invoice',
+            id: 'images',
+            icon: <ImagesIcon />,
+            label: 'Images',
+            color: '#2e7d32',
+            tooltip: 'View Article Images',
         },
         {
             id: 'delivery',
             icon: <DeliveryIcon />,
-            label: 'Delivery',
-            color: '#2e7d32',
+            label: 'Delivery Details',
+            color: '#ff9800',
             tooltip: 'View Delivery Details',
-        },
-        {
-            id: 'inspection',
-            icon: <ListIcon />,
-            label: 'Inspection',
-            color: '#f44336',
-            tooltip: 'View Inspection Details',
         },
     ];
 
@@ -680,10 +555,10 @@ const InformationPanel: React.FC<{
         switch (activePanel) {
             case 'product':
                 return <ProductContent onClose={handlePanelClose} />;
-            case 'document':
-                return <DocumentContent onClose={handlePanelClose} />;
-            case 'invoice':
-                return <InvoiceContent onClose={handlePanelClose} />;
+            case 'characteristics':
+                return <CharacteristicsContent onClose={handlePanelClose} />;
+            case 'images':
+                return <ImagesContent onClose={handlePanelClose} />;
             case 'delivery':
                 return <DeliveryContent onClose={handlePanelClose} />;
             case 'inspection':

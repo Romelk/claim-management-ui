@@ -257,50 +257,57 @@ const ReworkForm: React.FC<ExtendedReworkFormProps> = ({
                     </Typography>
                 ) : (
                     <Box sx={{
-                        display: 'flex',
-                        flexWrap: 'wrap',
-                        gap: 1,
-                        p: 1,
+                        p: 2,
                         bgcolor: 'background.paper',
                         borderRadius: 1,
                         border: '1px solid',
                         borderColor: 'divider',
-                        maxHeight: '150px',
+                        maxHeight: '200px',
                         overflow: 'auto'
                     }}>
                         {reworkSteps.map((step, index) => (
-                            <Chip
+                            <Box
                                 key={step.id}
-                                label={`Step ${index + 1}: ${step.name} (${step.quantity}) - ${step.payingParty}/${step.responsibleParty} - ${formatCurrency(step.stepCost)}`}
-                                color="primary"
-                                variant="outlined"
                                 sx={{
-                                    m: 0.5,
-                                    px: 1,
                                     display: 'flex',
-                                    alignItems: 'center',
-                                    flexShrink: 0
+                                    justifyContent: 'space-between',
+                                    mb: 1,
+                                    p: 1.5,
+                                    bgcolor: 'background.default',
+                                    borderRadius: 1,
+                                    boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                                    '&:last-child': { mb: 0 }
                                 }}
-                                deleteIcon={
-                                    <>
-                                        <IconButton
-                                            size="small"
-                                            sx={{ mr: 0.5 }}
-                                            onClick={() => handleEditStep(step)}
-                                        >
-                                            <EditIcon fontSize="small" />
-                                        </IconButton>
-                                        <IconButton
-                                            size="small"
-                                            color="error"
-                                            onClick={() => handleRemoveStep(step.id)}
-                                        >
-                                            <DeleteIcon fontSize="small" />
-                                        </IconButton>
-                                    </>
-                                }
-                                onDelete={() => {}} // Placeholder to enable delete icon area
-                            />
+                            >
+                                <Box>
+                                    <Typography variant="subtitle2">
+                                        {index + 1}. {step.name}
+                                    </Typography>
+                                    <Typography variant="body2" color="text.secondary">
+                                        Quantity: {step.quantity} • Paying: {step.payingParty} •
+                                        Responsible: {step.responsibleParty}
+                                    </Typography>
+                                    <Typography variant="body2" fontWeight="bold" color="primary">
+                                        Cost: {formatCurrency(step.stepCost)}
+                                    </Typography>
+                                </Box>
+                                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                    <IconButton
+                                        size="small"
+                                        color="primary"
+                                        onClick={() => handleEditStep(step)}
+                                    >
+                                        <EditIcon fontSize="small" />
+                                    </IconButton>
+                                    <IconButton
+                                        size="small"
+                                        color="error"
+                                        onClick={() => handleRemoveStep(step.id)}
+                                    >
+                                        <DeleteIcon fontSize="small" />
+                                    </IconButton>
+                                </Box>
+                            </Box>
                         ))}
                     </Box>
                 )}

@@ -10,51 +10,33 @@ import {
     Paper,
     Typography,
     Divider,
+    Badge,
 } from '@mui/material';
 import {
     Assignment as OrderedActionsIcon,
+    Euro as BillingIcon,
     Link as LinkableClaimsIcon,
     ViewList as SKUListIcon,
+    Note as NotesIcon,
     History as HistoryIcon,
     GetApp as DownloadsIcon,
+    Euro as BillingDetailsIcon
 } from '@mui/icons-material';
 
 // Import content components
 import OrderedActions from './Segments/OrderedActions';
+import Downloads from './Segments/Downloads';
+import LinkableClaims from './Segments/LinkableClaims';
+import SKUList from './Segments/SkuList';
+import Notes from './Segments/Notes';
+import History from './Segments/History';
+import BillingDetails from './Segments/BillingDetails';
 
-// New components to be created later
-const LinkableClaims = () => (
+const Billing = () => (
     <Box sx={{ p: 2 }}>
-        <Typography variant="h6">Linkable Claims</Typography>
+        <Typography variant="h6">Billing</Typography>
         <Typography variant="body2" color="text.secondary">
-            This section will display linkable claims.
-        </Typography>
-    </Box>
-);
-
-const SKUList = () => (
-    <Box sx={{ p: 2 }}>
-        <Typography variant="h6">SKU List</Typography>
-        <Typography variant="body2" color="text.secondary">
-            This section will display SKU List.
-        </Typography>
-    </Box>
-);
-
-const History = () => (
-    <Box sx={{ p: 2 }}>
-        <Typography variant="h6">History</Typography>
-        <Typography variant="body2" color="text.secondary">
-            This section will display history.
-        </Typography>
-    </Box>
-);
-
-const Downloads = () => (
-    <Box sx={{ p: 2 }}>
-        <Typography variant="h6">Downloads</Typography>
-        <Typography variant="body2" color="text.secondary">
-            This section will display downloads.
+            This section will display billing information.
         </Typography>
     </Box>
 );
@@ -62,24 +44,69 @@ const Downloads = () => (
 const ContentLayout = () => {
     const [activeSection, setActiveSection] = useState('orderedActions');
 
-    // Define navigation items
-    const navigationItems = [
-        { id: 'orderedActions', label: 'Ordered Actions', icon: <OrderedActionsIcon /> },
-        { id: 'linkableClaims', label: 'Linkable Claims', icon: <LinkableClaimsIcon /> },
-        { id: 'skuList', label: 'SKU List', icon: <SKUListIcon /> },
-        { id: 'history', label: 'History', icon: <HistoryIcon /> },
-        { id: 'downloads', label: 'Downloads', icon: <DownloadsIcon /> },
-    ];
+    // For demo purposes - can be replaced with actual data
+    const isClaimResolved = false; // Set to true to show Billing as first item
+    const hasLinkableClaims = true; // Indicates if linkable claims are available
+    const notesCount = 5; // Number of notes
+    const downloadCount = 3; // Number of downloads
+
+    // Define navigation items - will be filtered based on conditions
+    const getNavigationItems = () => {
+        let items = [
+            { id: 'orderedActions', label: 'Ordered Actions', icon: <OrderedActionsIcon />, badge: null },
+            {
+                id: 'billingDetails',
+                label: 'Billing Details',
+                icon: <BillingDetailsIcon />,
+                badge: null
+            },
+            {
+                id: 'linkableClaims',
+                label: 'Linkable Claims',
+                icon: <LinkableClaimsIcon />,
+                badge: hasLinkableClaims ? { content: '', color: 'primary' } : null
+            },
+            { id: 'skuList', label: 'SKU List', icon: <SKUListIcon />, badge: null },
+            {
+                id: 'notes',
+                label: 'Notes',
+                icon: <NotesIcon />,
+                badge: notesCount > 0 ? { content: notesCount, color: 'default' } : null
+            },
+            { id: 'history', label: 'History', icon: <HistoryIcon />, badge: null },
+            {
+                id: 'downloads',
+                label: 'Downloads',
+                icon: <DownloadsIcon />,
+                badge: downloadCount > 0 ? { content: downloadCount, color: 'default' } : null
+            },
+        ];
+
+        // Add Billing section if claim is resolved
+        if (isClaimResolved) {
+            items.unshift({ id: 'billing', label: 'Billing', icon: <BillingIcon />, badge: null });
+        }
+
+        return items;
+    };
+
+    const navigationItems = getNavigationItems();
 
     // Render main content based on active section
     const renderContent = () => {
         switch (activeSection) {
+            case 'billing':
+                return <Billing />;
+            case 'billingDetails':
+                return <BillingDetails />;
             case 'orderedActions':
                 return <OrderedActions />;
             case 'linkableClaims':
                 return <LinkableClaims />;
             case 'skuList':
                 return <SKUList />;
+            case 'notes':
+                return <Notes />;
             case 'history':
                 return <History />;
             case 'downloads':
@@ -139,7 +166,19 @@ const ContentLayout = () => {
                                         }
                                     }}
                                 >
-                                    <ListItemIcon>{item.icon}</ListItemIcon>
+                                    <ListItemIcon>
+                                        {item.badge ? (
+                                            <Badge
+                                                color={item.badge.color}
+                                                variant={item.badge.content ? "standard" : "dot"}
+                                                badgeContent={item.badge.content}
+                                            >
+                                                {item.icon}
+                                            </Badge>
+                                        ) : (
+                                            item.icon
+                                        )}
+                                    </ListItemIcon>
                                     <ListItemText primary={item.label} />
                                 </ListItemButton>
                             </ListItem>
