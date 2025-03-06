@@ -5,6 +5,7 @@ export type StepDefinition = {
     baseCost: number;
 };
 
+// Basic GivebackStep type
 export type GivebackStep = {
     id: string;
     name: string;
@@ -13,6 +14,19 @@ export type GivebackStep = {
     responsibleParty: PartyType;
     stepCost: number;
 };
+
+// Extended CustomGivebackStep type
+export interface CustomGivebackStep extends GivebackStep {
+    isCustom: true;
+    englishName: string;
+    englishDescription: string;
+    baseCost: number;
+    translations: {
+        de: { name: string; description: string; };
+        cz: { name: string; description: string; };
+        pl: { name: string; description: string; };
+    };
+}
 
 export type GivebackFormData = {
     globalNote: string;

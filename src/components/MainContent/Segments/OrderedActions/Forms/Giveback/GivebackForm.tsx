@@ -3,27 +3,32 @@ import {
     Box,
     Typography,
     TextField,
-    FormControl,
-    Select,
-    MenuItem,
     Grid,
-    Paper,
     Chip,
     IconButton,
-    ToggleButtonGroup,
-    ToggleButton,
     Button,
     Card,
     CardContent,
-    Divider
+    Divider,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogActions,
+    Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableHead,
+    TableRow
 } from '@mui/material';
 import {
     Add as AddIcon,
     Delete as DeleteIcon,
     Edit as EditIcon,
     Save as SaveIcon,
-    PriceCheck as PriceCheckIcon,
-    Notes as NotesIcon
+    Notes as NotesIcon,
+    Visibility as VisibilityIcon,
+    Close as CloseIcon
 } from '@mui/icons-material';
 
 // Import modular types and definitions
@@ -43,27 +48,50 @@ import {
 // Import the CostBadge
 import CostBadge from './CostBadge';
 
+// Import Step Components
+import StandardStepForm, { StandardStepData } from './StandardStepForm';
+import CustomStepForm, { CustomStepData } from './CustomStepForm';
+
 // Extended props to include onSave function
 interface ExtendedGivebackFormProps extends GivebackFormProps {
     onSave?: () => void;
 }
 
-const ImprovedGivebackForm: React.FC<ExtendedGivebackFormProps> = ({
-                                                                       onFormChange,
-                                                                       initialData = {},
-                                                                       onSave
-                                                                   }) => {
+const GivebackForm: React.FC<ExtendedGivebackFormProps> = ({
+                                                               onFormChange,
+                                                               initialData = {},
+                                                               onSave
+                                                           }) => {
     // State for steps
     const [givebackSteps, setGivebackSteps] = useState<GivebackStep[]>(
         initialData.givebackSteps || []
     );
 
-    // State for new step form
-    const [newStep, setNewStep] = useState<Partial<GivebackStep>>({
+    // State for step mode (standard or custom)
+    const [stepMode, setStepMode] = useState<'standard' | 'custom'>('standard');
+
+    // State for new standard step
+    const [standardStepData, setStandardStepData] = useState<StandardStepData>({
         name: '',
         quantity: 1,
         payingParty: PartyType.Supplier,
-        responsibleParty: PartyType.Supplier
+        responsibleParty: PartyType.Supplier,
+        stepCost: 0
+    });
+
+    // State for new custom step
+    const [customStepData, setCustomStepData] = useState<CustomStepData>({
+        englishName: '',
+        englishDescription: '',
+        baseCost: 0,
+        quantity: 1,
+        payingParty: PartyType.Supplier,
+        responsibleParty: PartyType.Supplier,
+        translations: {
+            de: {name: '', description: ''},
+            cz: {name: '', description: ''},
+            pl: {name: '', description: ''}
+        }
     });
 
     // State for step description
@@ -74,6 +102,10 @@ const ImprovedGivebackForm: React.FC<ExtendedGivebackFormProps> = ({
 
     // State for global note
     const [globalNote, setGlobalNote] = useState(initialData.globalNote || '');
+
+    // State for details dialog
+    const [detailsDialogOpen, setDetailsDialogOpen] = useState<boolean>(false);
+    const [selectedStepForDetails, setSelectedStepForDetails] = useState<GivebackStep | null>(null);
 
     // Calculate total cost
     const totalCost = useMemo(() => calculateTotalCost(givebackSteps), [givebackSteps]);
@@ -99,106 +131,182 @@ const ImprovedGivebackForm: React.FC<ExtendedGivebackFormProps> = ({
         });
     };
 
-    // Handle step name selection
-    const handleStepNameChange = (stepName: string) => {
-        const selectedStep = StepNames.find(step => step.name === stepName);
-        setNewStep(prev => ({
-            ...prev,
-            name: stepName,
-            stepCost: selectedStep
-                ? calculateStepCost(selectedStep.baseCost, prev.quantity || 1)
-                : 0
-        }));
-        setStepDescription(selectedStep ? selectedStep.description : '');
+    // Switch step mode
+    const handleStepModeChange = (mode: 'standard' | 'custom') => {
+        setStepMode(mode);
+        // Reset editing state when changing modes
+        if (editingStepId) {
+            setEditingStepId(null);
+        }
     };
 
-    // Handle quantity change with cost calculation
-    const handleQuantityChange = (quantity: number) => {
-        const selectedStep = StepNames.find(step => step.name === newStep.name);
-        setNewStep(prev => ({
-            ...prev,
-            quantity,
-            stepCost: selectedStep
-                ? calculateStepCost(selectedStep.baseCost, quantity)
-                : 0
-        }));
+    // Handle standard step data change
+    const handleStandardStepDataChange = (data: StandardStepData) => {
+        setStandardStepData(data);
+    };
+
+    // Handle custom step data change
+    const handleCustomStepDataChange = (data: CustomStepData) => {
+        setCustomStepData(data);
+    };
+
+    // Handle step description change
+    const handleStepDescriptionChange = (description: string) => {
+        setStepDescription(description);
     };
 
     // Add or update a step
+    // Update handleSaveStep in GivebackForm.tsx to check for translations validity
+
     const handleSaveStep = () => {
-        // Validate step before adding/updating
-        if (!newStep.name || !newStep.quantity) return;
+        if (stepMode === 'standard') {
+            // Validate standard step before adding/updating
+            if (!standardStepData.name) return;
 
-        if (editingStepId) {
-            // Update existing step
-            const updatedSteps = givebackSteps.map(step =>
-                step.id === editingStepId
-                    ? {
-                        id: step.id,
-                        name: newStep.name!,
-                        quantity: newStep.quantity!,
-                        payingParty: newStep.payingParty!,
-                        responsibleParty: newStep.responsibleParty!,
-                        stepCost: newStep.stepCost!
-                    }
-                    : step
-            );
+            if (editingStepId) {
+                // Update existing step
+                const updatedSteps = givebackSteps.map(step =>
+                    step.id === editingStepId
+                        ? {
+                            id: step.id,
+                            name: standardStepData.name,
+                            quantity: standardStepData.quantity,
+                            payingParty: standardStepData.payingParty,
+                            responsibleParty: standardStepData.responsibleParty,
+                            stepCost: standardStepData.stepCost
+                        }
+                        : step
+                );
 
-            setGivebackSteps(updatedSteps);
-            onFormChange({
-                globalNote,
-                givebackSteps: updatedSteps,
-                totalCost: calculateTotalCost(updatedSteps)
+                setGivebackSteps(updatedSteps);
+                onFormChange({
+                    globalNote,
+                    givebackSteps: updatedSteps,
+                    totalCost: calculateTotalCost(updatedSteps)
+                });
+
+                // Reset editing state
+                setEditingStepId(null);
+            } else {
+                // Add new standard step
+                const stepToAdd: GivebackStep = {
+                    id: `step-${Date.now()}`,
+                    name: standardStepData.name,
+                    quantity: standardStepData.quantity,
+                    payingParty: standardStepData.payingParty,
+                    responsibleParty: standardStepData.responsibleParty,
+                    stepCost: standardStepData.stepCost
+                };
+
+                const updatedSteps = [...givebackSteps, stepToAdd];
+                setGivebackSteps(updatedSteps);
+                onFormChange({
+                    globalNote,
+                    givebackSteps: updatedSteps,
+                    totalCost: calculateTotalCost(updatedSteps)
+                });
+            }
+
+            // Reset standard step form
+            setStandardStepData({
+                name: '',
+                quantity: 1,
+                payingParty: PartyType.Supplier,
+                responsibleParty: PartyType.Supplier,
+                stepCost: 0
             });
 
-            // Reset editing state
-            setEditingStepId(null);
+            // Clear description
+            setStepDescription('');
         } else {
-            // Add new step
-            const stepToAdd: GivebackStep = {
-                id: `step-${Date.now()}`,
-                name: newStep.name!,
-                quantity: newStep.quantity!,
-                payingParty: newStep.payingParty!,
-                responsibleParty: newStep.responsibleParty!,
-                stepCost: newStep.stepCost!
+            // Validate custom step before adding - including required translations
+            if (!customStepData.englishName ||
+                !customStepData.englishDescription ||
+                !customStepData.baseCost ||
+                !customStepData.translations.de.name ||
+                !customStepData.translations.de.description ||
+                !customStepData.translations.cz.name ||
+                !customStepData.translations.cz.description ||
+                !customStepData.translations.pl.name ||
+                !customStepData.translations.pl.description) {
+                return;
+            }
+
+            // Add new custom step
+            const customStepToAdd: GivebackStep = {
+                id: `custom-step-${Date.now()}`,
+                name: customStepData.englishName,
+                quantity: customStepData.quantity,
+                payingParty: customStepData.payingParty,
+                responsibleParty: customStepData.responsibleParty,
+                stepCost: calculateStepCost(customStepData.baseCost, customStepData.quantity),
+                isCustom: true as any, // Using 'as any' to add custom property
+                translations: customStepData.translations as any,
+                englishName: customStepData.englishName as any,
+                englishDescription: customStepData.englishDescription as any,
+                baseCost: customStepData.baseCost as any
             };
 
-            const updatedSteps = [...givebackSteps, stepToAdd];
+            const updatedSteps = [...givebackSteps, customStepToAdd];
             setGivebackSteps(updatedSteps);
             onFormChange({
                 globalNote,
                 givebackSteps: updatedSteps,
                 totalCost: calculateTotalCost(updatedSteps)
             });
+
+            // Reset custom step form
+            setCustomStepData({
+                englishName: '',
+                englishDescription: '',
+                baseCost: 0,
+                quantity: 1,
+                payingParty: PartyType.Supplier,
+                responsibleParty: PartyType.Supplier,
+                translations: {
+                    de: { name: '', description: '' },
+                    cz: { name: '', description: '' },
+                    pl: { name: '', description: '' }
+                }
+            });
         }
-
-        // Reset new step form
-        setNewStep({
-            name: '',
-            quantity: 1,
-            payingParty: PartyType.Supplier,
-            responsibleParty: PartyType.Supplier
-        });
-
-        // Clear description
-        setStepDescription('');
     };
-
     // Prepare step for editing
     const handleEditStep = (step: GivebackStep) => {
         setEditingStepId(step.id);
-        setNewStep({
-            name: step.name,
-            quantity: step.quantity,
-            payingParty: step.payingParty,
-            responsibleParty: step.responsibleParty,
-            stepCost: step.stepCost
-        });
 
-        // Set description for editing step
-        const selectedStep = StepNames.find(s => s.name === step.name);
-        setStepDescription(selectedStep ? selectedStep.description : '');
+        if ((step as any).isCustom) {
+            // Custom step editing
+            setStepMode('custom');
+            const customStep = step as any;
+            setCustomStepData({
+                englishName: customStep.englishName || customStep.name,
+                englishDescription: customStep.englishDescription || '',
+                baseCost: customStep.baseCost || 0,
+                quantity: step.quantity,
+                payingParty: step.payingParty,
+                responsibleParty: step.responsibleParty,
+                translations: customStep.translations || {
+                    de: {name: '', description: ''},
+                    cz: {name: '', description: ''},
+                    pl: {name: '', description: ''}
+                }
+            });
+        } else {
+            // Standard step editing
+            setStepMode('standard');
+            setStandardStepData({
+                name: step.name,
+                quantity: step.quantity,
+                payingParty: step.payingParty,
+                responsibleParty: step.responsibleParty,
+                stepCost: step.stepCost
+            });
+
+            // Set description for editing step
+            const selectedStep = StepNames.find(s => s.name === step.name);
+            setStepDescription(selectedStep ? selectedStep.description : '');
+        }
     };
 
     // Remove a step
@@ -214,168 +322,125 @@ const ImprovedGivebackForm: React.FC<ExtendedGivebackFormProps> = ({
         });
     };
 
+    // Function to open details dialog
+    const handleViewDetails = (step: GivebackStep) => {
+        setSelectedStepForDetails(step);
+        setDetailsDialogOpen(true);
+    };
+
+    // Function to close details dialog
+    const handleCloseDetails = () => {
+        setDetailsDialogOpen(false);
+        setSelectedStepForDetails(null);
+    };
+
+    // Get step description by name
+    const getStepDescription = (stepName: string): string => {
+        const selectedStep = StepNames.find(s => s.name === stepName);
+        return selectedStep ? selectedStep.description : 'No description available';
+    };
+
+    // Get step base cost by name
+    const getStepBaseCost = (stepName: string): number => {
+        const selectedStep = StepNames.find(s => s.name === stepName);
+        return selectedStep ? selectedStep.baseCost : 0;
+    };
+
     // Determine if form has enough data to save
     const canSave = givebackSteps.length > 0;
 
     return (
-        <Box sx={{ position: 'relative', p: 2 }}>
+        <Box sx={{position: 'relative', p: 2}}>
             {/* Cost Badge */}
-            <CostBadge totalCost={totalCost} />
+            <CostBadge totalCost={totalCost}/>
 
             <Grid container spacing={3}>
                 {/* Left Column - Form Input */}
                 <Grid item xs={12} md={6}>
-                    <Card variant="outlined" sx={{ height: '100%' }}>
+                    <Card variant="outlined" sx={{height: '100%'}}>
                         <CardContent>
                             <Typography variant="h6" color="primary" gutterBottom>
                                 Configure Step
                             </Typography>
 
-                            <Grid container spacing={2}>
-                                {/* Step Name Dropdown */}
-                                <Grid item xs={12}>
-                                    <Typography variant="body2" sx={{ mb: 1 }}>Step Name</Typography>
-                                    <FormControl fullWidth variant="outlined" size="small">
-                                        <Select
-                                            value={newStep.name || ''}
-                                            displayEmpty
-                                            renderValue={(selected) =>
-                                                selected ? selected : <em>Select Step Name</em>
-                                            }
-                                            onChange={(e) => handleStepNameChange(e.target.value)}
-                                        >
-                                            <MenuItem disabled value="">
-                                                <em>Select Step Name</em>
-                                            </MenuItem>
-                                            {StepNames.map((step) => (
-                                                <MenuItem key={step.name} value={step.name}>
-                                                    {step.name}
-                                                </MenuItem>
-                                            ))}
-                                        </Select>
-                                    </FormControl>
-                                </Grid>
+                            {/* Step Type Toggle */}
+                            <Box sx={{
+                                mb: 3,
+                                display: 'flex',
+                                borderRadius: 1,
+                                overflow: 'hidden',
+                                border: '1px solid',
+                                borderColor: 'divider'
+                            }}>
+                                <Button
+                                    fullWidth
+                                    variant={stepMode === 'standard' ? 'contained' : 'outlined'}
+                                    color="primary"
+                                    onClick={() => handleStepModeChange('standard')}
+                                    sx={{borderRadius: 0, py: 1}}
+                                >
+                                    Standard Step
+                                </Button>
+                                <Button
+                                    fullWidth
+                                    variant={stepMode === 'custom' ? 'contained' : 'outlined'}
+                                    color="secondary"
+                                    onClick={() => handleStepModeChange('custom')}
+                                    sx={{borderRadius: 0, py: 1}}
+                                >
+                                    Custom Step
+                                </Button>
+                            </Box>
 
-                                {/* Step Description */}
-                                {stepDescription && (
-                                    <Grid item xs={12}>
-                                        <Typography
-                                            variant="body2"
-                                            color="text.secondary"
-                                            sx={{
-                                                p: 1.5,
-                                                bgcolor: 'background.default',
-                                                borderRadius: 1,
-                                                mb: 1,
-                                                border: '1px dashed',
-                                                borderColor: 'divider'
-                                            }}
-                                        >
-                                            {stepDescription}
-                                        </Typography>
-                                    </Grid>
-                                )}
+                            {/* Render appropriate form based on mode */}
+                            {stepMode === 'standard' ? (
+                                <StandardStepForm
+                                    data={standardStepData}
+                                    onChange={handleStandardStepDataChange}
+                                    stepDescription={stepDescription}
+                                    onStepDescriptionChange={handleStepDescriptionChange}
+                                />
+                            ) : (
+                                <CustomStepForm
+                                    data={customStepData}
+                                    onChange={handleCustomStepDataChange}
+                                    onSave={handleSaveStep}
+                                    isEditing={!!editingStepId}
+                                />
+                            )}
 
-                                {/* Quantity Input */}
-                                <Grid item xs={12} sm={6}>
-                                    <Typography variant="body2" sx={{ mb: 1 }}>Quantity</Typography>
-                                    <TextField
-                                        fullWidth
-                                        type="number"
-                                        variant="outlined"
-                                        size="small"
-                                        value={newStep.quantity}
-                                        onChange={(e) => handleQuantityChange(parseInt(e.target.value) || 1)}
-                                        InputProps={{
-                                            inputProps: { min: 1 }
-                                        }}
-                                    />
-                                </Grid>
-
-                                {/* Step Cost Display */}
-                                <Grid item xs={12} sm={6}>
-                                    <Typography variant="body2" sx={{ mb: 1 }}>Step Cost</Typography>
-                                    <TextField
-                                        fullWidth
-                                        variant="outlined"
-                                        size="small"
-                                        value={formatCurrency(newStep.stepCost || 0)}
-                                        InputProps={{
-                                            readOnly: true,
-                                            startAdornment: <PriceCheckIcon color="primary" sx={{ mr: 1, fontSize: '1rem' }} />
-                                        }}
-                                    />
-                                </Grid>
-
-                                {/* Paying Party Toggle */}
-                                <Grid item xs={12}>
-                                    <Typography variant="body2" sx={{ mb: 1 }}>Paying Party</Typography>
-                                    <ToggleButtonGroup
-                                        color="primary"
-                                        exclusive
-                                        fullWidth
-                                        size="small"
-                                        value={newStep.payingParty}
-                                        onChange={(_, value) => value && setNewStep(prev => ({
-                                            ...prev,
-                                            payingParty: value
-                                        }))}
-                                    >
-                                        <ToggleButton value={PartyType.Partner}>
-                                            Partner
-                                        </ToggleButton>
-                                        <ToggleButton value={PartyType.Supplier}>
-                                            Supplier
-                                        </ToggleButton>
-                                    </ToggleButtonGroup>
-                                </Grid>
-
-                                {/* Responsible Party Toggle */}
-                                <Grid item xs={12}>
-                                    <Typography variant="body2" sx={{ mb: 1 }}>Responsible Party</Typography>
-                                    <ToggleButtonGroup
-                                        color="primary"
-                                        exclusive
-                                        fullWidth
-                                        size="small"
-                                        value={newStep.responsibleParty}
-                                        onChange={(_, value) => value && setNewStep(prev => ({
-                                            ...prev,
-                                            responsibleParty: value
-                                        }))}
-                                    >
-                                        <ToggleButton value={PartyType.Partner}>
-                                            Partner
-                                        </ToggleButton>
-                                        <ToggleButton value={PartyType.Supplier}>
-                                            Supplier
-                                        </ToggleButton>
-                                    </ToggleButtonGroup>
-                                </Grid>
-
-                                {/* Add Button */}
-                                <Grid item xs={12}>
-                                    <Button
-                                        variant="contained"
-                                        fullWidth
-                                        disabled={!newStep.name}
-                                        startIcon={editingStepId ? <SaveIcon /> : <AddIcon />}
-                                        onClick={handleSaveStep}
-                                        sx={{ mt: 1 }}
-                                    >
-                                        {editingStepId ? 'Update Step' : 'Add Step'}
-                                    </Button>
-                                </Grid>
-                            </Grid>
+                            {/* Add/Update Step Button */}
+                            <Box sx={{mt: 2}}>
+                                <Button
+                                    variant="contained"
+                                    fullWidth
+                                    color={stepMode === 'standard' ? "primary" : "secondary"}
+                                    disabled={
+                                        stepMode === 'standard'
+                                            ? !standardStepData.name
+                                            : !customStepData.englishName || !customStepData.baseCost
+                                    }
+                                    startIcon={editingStepId ? <SaveIcon/> : <AddIcon/>}
+                                    onClick={handleSaveStep}
+                                >
+                                    {editingStepId
+                                        ? 'Update Step'
+                                        : stepMode === 'standard'
+                                            ? 'Add Step'
+                                            : 'Add Custom Step'
+                                    }
+                                </Button>
+                            </Box>
                         </CardContent>
                     </Card>
                 </Grid>
 
                 {/* Right Column - Giveback Plan */}
                 <Grid item xs={12} md={6}>
-                    <Card variant="outlined" sx={{ height: '100%' }}>
+                    <Card variant="outlined" sx={{height: '100%'}}>
                         <CardContent>
-                            <Typography variant="h6" color="primary" gutterBottom display="flex" alignItems="center" justifyContent="space-between">
+                            <Typography variant="h6" color="primary" gutterBottom display="flex" alignItems="center"
+                                        justifyContent="space-between">
                                 <span>Giveback Plan</span>
                                 {givebackSteps.length > 0 && (
                                     <Chip
@@ -388,8 +453,8 @@ const ImprovedGivebackForm: React.FC<ExtendedGivebackFormProps> = ({
                             </Typography>
 
                             {/* Steps List */}
-                            <Box sx={{ mb: 3 }}>
-                                <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
+                            <Box sx={{mb: 3}}>
+                                <Typography variant="subtitle2" color="text.secondary" sx={{mb: 1}}>
                                     Added Steps
                                 </Typography>
 
@@ -418,58 +483,78 @@ const ImprovedGivebackForm: React.FC<ExtendedGivebackFormProps> = ({
                                         border: '1px solid',
                                         borderColor: 'divider'
                                     }}>
-                                        {givebackSteps.map((step, index) => (
-                                            <Box
-                                                key={step.id}
-                                                sx={{
-                                                    display: 'flex',
-                                                    justifyContent: 'space-between',
-                                                    mb: 1,
-                                                    p: 1.5,
-                                                    bgcolor: 'background.paper',
-                                                    borderRadius: 1,
-                                                    boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-                                                    '&:last-child': { mb: 0 }
-                                                }}
-                                            >
-                                                <Box>
-                                                    <Typography variant="subtitle2">
-                                                        {index + 1}. {step.name}
-                                                    </Typography>
-                                                    <Typography variant="body2" color="text.secondary">
-                                                        Quantity: {step.quantity} • Paying: {step.payingParty} •
-                                                        Responsible: {step.responsibleParty}
-                                                    </Typography>
-                                                    <Typography variant="body2" fontWeight="bold" color="primary">
-                                                        Cost: {formatCurrency(step.stepCost)}
-                                                    </Typography>
+                                        {givebackSteps.map((step, index) => {
+                                            const isCustomStep = !!(step as any).isCustom;
+                                            return (
+                                                <Box
+                                                    key={step.id}
+                                                    sx={{
+                                                        display: 'flex',
+                                                        justifyContent: 'space-between',
+                                                        mb: 1,
+                                                        p: 1.5,
+                                                        bgcolor: isCustomStep ? 'rgba(156, 39, 176, 0.05)' : 'background.paper',
+                                                        borderRadius: 1,
+                                                        border: '1px solid',
+                                                        borderColor: isCustomStep ? 'secondary.light' : 'divider',
+                                                        boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                                                        '&:last-child': {mb: 0}
+                                                    }}
+                                                >
+                                                    <Box>
+                                                        <Typography variant="subtitle2"
+                                                                    color={isCustomStep ? 'secondary.main' : 'inherit'}>
+                                                            {index + 1}. {step.name} {isCustomStep &&
+                                                            <Chip size="small" label="Custom" color="secondary"
+                                                                  sx={{ml: 1, height: 20}}/>}
+                                                        </Typography>
+                                                        <Typography variant="body2" color="text.secondary">
+                                                            Quantity: {step.quantity} • Paying: {step.payingParty} •
+                                                            Responsible: {step.responsibleParty}
+                                                        </Typography>
+                                                        <Typography variant="body2" fontWeight="bold"
+                                                                    color={isCustomStep ? 'secondary.main' : 'primary.main'}>
+                                                            Cost: {formatCurrency(step.stepCost)}
+                                                        </Typography>
+                                                    </Box>
+                                                    <Box sx={{display: 'flex', alignItems: 'center'}}>
+                                                        <IconButton
+                                                            size="small"
+                                                            onClick={() => handleViewDetails(step)}
+                                                            sx={{color: 'info.main'}}
+                                                            title="View Details"
+                                                        >
+                                                            <VisibilityIcon fontSize="small"/>
+                                                        </IconButton>
+                                                        <IconButton
+                                                            size="small"
+                                                            color={isCustomStep ? 'secondary' : 'primary'}
+                                                            onClick={() => handleEditStep(step)}
+                                                            title="Edit Step"
+                                                        >
+                                                            <EditIcon fontSize="small"/>
+                                                        </IconButton>
+                                                        <IconButton
+                                                            size="small"
+                                                            color="error"
+                                                            onClick={() => handleRemoveStep(step.id)}
+                                                            title="Remove Step"
+                                                        >
+                                                            <DeleteIcon fontSize="small"/>
+                                                        </IconButton>
+                                                    </Box>
                                                 </Box>
-                                                <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                                    <IconButton
-                                                        size="small"
-                                                        color="primary"
-                                                        onClick={() => handleEditStep(step)}
-                                                    >
-                                                        <EditIcon fontSize="small" />
-                                                    </IconButton>
-                                                    <IconButton
-                                                        size="small"
-                                                        color="error"
-                                                        onClick={() => handleRemoveStep(step.id)}
-                                                    >
-                                                        <DeleteIcon fontSize="small" />
-                                                    </IconButton>
-                                                </Box>
-                                            </Box>
-                                        ))}
+                                            );
+                                        })}
                                     </Box>
                                 )}
                             </Box>
 
                             {/* Global Notes */}
-                            <Box sx={{ mb: 3 }}>
-                                <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1, display: 'flex', alignItems: 'center' }}>
-                                    <NotesIcon fontSize="small" sx={{ mr: 0.5 }} /> Global Notes
+                            <Box sx={{mb: 3}}>
+                                <Typography variant="subtitle2" color="text.secondary"
+                                            sx={{mb: 1, display: 'flex', alignItems: 'center'}}>
+                                    <NotesIcon fontSize="small" sx={{mr: 0.5}}/> Global Notes
                                 </Typography>
                                 <TextField
                                     fullWidth
@@ -484,7 +569,7 @@ const ImprovedGivebackForm: React.FC<ExtendedGivebackFormProps> = ({
 
                             {/* Save Button */}
                             <Box>
-                                <Divider sx={{ mb: 2 }} />
+                                <Divider sx={{mb: 2}}/>
 
                                 {onSave && (
                                     <Button
@@ -492,11 +577,12 @@ const ImprovedGivebackForm: React.FC<ExtendedGivebackFormProps> = ({
                                         color="primary"
                                         size="large"
                                         fullWidth
-                                        startIcon={<SaveIcon />}
+                                        startIcon={<SaveIcon/>}
                                         onClick={onSave}
                                         disabled={!canSave}
                                     >
-                                        Save Giveback Order ({givebackSteps.length} {givebackSteps.length === 1 ? 'step' : 'steps'})
+                                        Save Giveback Order
+                                        ({givebackSteps.length} {givebackSteps.length === 1 ? 'step' : 'steps'})
                                     </Button>
                                 )}
                             </Box>
@@ -504,8 +590,181 @@ const ImprovedGivebackForm: React.FC<ExtendedGivebackFormProps> = ({
                     </Card>
                 </Grid>
             </Grid>
+
+            {/* Step Details Dialog */}
+            <Dialog
+                open={detailsDialogOpen}
+                onClose={handleCloseDetails}
+                maxWidth="md"
+                fullWidth
+            >
+                <DialogTitle sx={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    bgcolor: (selectedStepForDetails && (selectedStepForDetails as any).isCustom) ? 'secondary.light' : 'primary.light',
+                    color: 'white'
+                }}>
+                    <Box sx={{display: 'flex', alignItems: 'center'}}>
+                        <Typography variant="h6">
+                            Step Details: {selectedStepForDetails?.name}
+                            {selectedStepForDetails && (selectedStepForDetails as any).isCustom && (
+                                <Chip size="small" label="Custom" color="secondary"
+                                      sx={{ml: 1, bgcolor: 'white', color: 'secondary.main'}}/>
+                            )}
+                        </Typography>
+                    </Box>
+                    <IconButton
+                        size="small"
+                        onClick={handleCloseDetails}
+                        sx={{color: 'inherit'}}
+                    >
+                        <CloseIcon/>
+                    </IconButton>
+                </DialogTitle>
+                <DialogContent dividers>
+                    {selectedStepForDetails && (
+                        <Box>
+                            <Typography variant="subtitle1" gutterBottom>
+                                Description
+                            </Typography>
+                            <Typography variant="body2" sx={{
+                                p: 2,
+                                mb: 3,
+                                bgcolor: 'background.default',
+                                borderRadius: 1,
+                                border: '1px solid',
+                                borderColor: 'divider'
+                            }}>
+                                {(selectedStepForDetails as any).isCustom
+                                    ? (selectedStepForDetails as any).englishDescription || 'No description available'
+                                    : getStepDescription(selectedStepForDetails.name)
+                                }
+                            </Typography>
+
+                            <TableContainer component={Paper} variant="outlined" sx={{mb: 3}}>
+                                <Table size="small">
+                                    <TableHead>
+                                        <TableRow sx={{bgcolor: 'background.default'}}>
+                                            <TableCell><Typography variant="subtitle2">Property</Typography></TableCell>
+                                            <TableCell><Typography variant="subtitle2">Value</Typography></TableCell>
+                                        </TableRow>
+                                    </TableHead>
+                                    <TableBody>
+                                        <TableRow>
+                                            <TableCell>Base Cost</TableCell>
+                                            <TableCell>
+                                                {(selectedStepForDetails as any).isCustom
+                                                    ? formatCurrency((selectedStepForDetails as any).baseCost || 0)
+                                                    : formatCurrency(getStepBaseCost(selectedStepForDetails.name))
+                                                }
+                                            </TableCell>
+                                        </TableRow>
+                                        <TableRow>
+                                            <TableCell>Quantity</TableCell>
+                                            <TableCell>{selectedStepForDetails.quantity}</TableCell>
+                                        </TableRow>
+                                        <TableRow>
+                                            <TableCell>Total Step Cost</TableCell>
+                                            <TableCell>
+                                                <Typography fontWeight="bold"
+                                                            color={(selectedStepForDetails as any).isCustom ? 'secondary.main' : 'primary.main'}>
+                                                    {formatCurrency(selectedStepForDetails.stepCost)}
+                                                </Typography>
+                                            </TableCell>
+                                        </TableRow>
+                                        <TableRow>
+                                            <TableCell>Paying Party</TableCell>
+                                            <TableCell>
+                                                <Chip
+                                                    label={selectedStepForDetails.payingParty}
+                                                    size="small"
+                                                    color={selectedStepForDetails.payingParty === PartyType.Partner ? "primary" : "default"}
+                                                />
+                                            </TableCell>
+                                        </TableRow>
+                                        <TableRow>
+                                            <TableCell>Responsible Party</TableCell>
+                                            <TableCell>
+                                                <Chip
+                                                    label={selectedStepForDetails.responsibleParty}
+                                                    size="small"
+                                                    color={selectedStepForDetails.responsibleParty === PartyType.Partner ? "primary" : "default"}
+                                                />
+                                            </TableCell>
+                                        </TableRow>
+                                    </TableBody>
+                                </Table>
+                            </TableContainer>
+
+                            {/* Display translations for custom steps */}
+                            {(selectedStepForDetails as any).isCustom && (selectedStepForDetails as any).translations && (
+                                <Box sx={{mb: 3}}>
+                                    <Typography variant="subtitle1" gutterBottom>
+                                        Translations
+                                    </Typography>
+
+                                    <TableContainer component={Paper} variant="outlined">
+                                        <Table size="small">
+                                            <TableHead>
+                                                <TableRow sx={{bgcolor: 'background.default'}}>
+                                                    <TableCell><Typography
+                                                        variant="subtitle2">Language</Typography></TableCell>
+                                                    <TableCell><Typography
+                                                        variant="subtitle2">Name</Typography></TableCell>
+                                                    <TableCell><Typography variant="subtitle2">Description</Typography></TableCell>
+                                                </TableRow>
+                                            </TableHead>
+                                            <TableBody>
+                                                <TableRow>
+                                                    <TableCell>German</TableCell>
+                                                    <TableCell>{(selectedStepForDetails as any).translations.de.name || '-'}</TableCell>
+                                                    <TableCell>{(selectedStepForDetails as any).translations.de.description || '-'}</TableCell>
+                                                </TableRow>
+                                                <TableRow>
+                                                    <TableCell>Czech</TableCell>
+                                                    <TableCell>{(selectedStepForDetails as any).translations.cz.name || '-'}</TableCell>
+                                                    <TableCell>{(selectedStepForDetails as any).translations.cz.description || '-'}</TableCell>
+                                                </TableRow>
+                                                <TableRow>
+                                                    <TableCell>Polish</TableCell>
+                                                    <TableCell>{(selectedStepForDetails as any).translations.pl.name || '-'}</TableCell>
+                                                    <TableCell>{(selectedStepForDetails as any).translations.pl.description || '-'}</TableCell>
+                                                </TableRow>
+                                            </TableBody>
+                                        </Table>
+                                    </TableContainer>
+                                </Box>
+                            )}
+
+                            <Box sx={{display: 'flex', justifyContent: 'space-between'}}>
+                                <Button
+                                    variant="outlined"
+                                    startIcon={<EditIcon/>}
+                                    onClick={() => {
+                                        handleEditStep(selectedStepForDetails);
+                                        handleCloseDetails();
+                                    }}
+                                >
+                                    Edit Step
+                                </Button>
+                                <Button
+                                    variant="outlined"
+                                    color="error"
+                                    startIcon={<DeleteIcon/>}
+                                    onClick={() => {
+                                        handleRemoveStep(selectedStepForDetails.id);
+                                        handleCloseDetails();
+                                    }}
+                                >
+                                    Remove Step
+                                </Button>
+                            </Box>
+                        </Box>
+                    )}
+                </DialogContent>
+            </Dialog>
         </Box>
     );
 };
-
-export default ImprovedGivebackForm;
+    export default GivebackForm;

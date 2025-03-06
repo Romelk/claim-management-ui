@@ -44,6 +44,7 @@ import { ReworkForm } from './OrderedActions/Forms';
 import { GivebackForm } from './OrderedActions/Forms/Giveback';
 import SecondaryInspectionForm from './OrderedActions/Forms/SecondaryInspectionForm';
 import OnStockForm from './OrderedActions/Forms/OnStock';
+import ScrapFormDemo from './OrderedActions/Forms/Scrap/ScrapFormDemo';
 
 // Action type definitions
 type ActionType =
@@ -346,7 +347,7 @@ const OrderedActions: React.FC = () => {
   // Function to handle view details button click
   const handleViewDetails = (action: ActionData) => {
     // For now, only implement for rework action type
-    if (action.type === 'rework' || action.type === 'secondary-inspection'|| action.type === 'give-back'|| action.type === 'on-stock') {
+    if (action.type === 'rework' || action.type === 'secondary-inspection'|| action.type === 'give-back'|| action.type === 'on-stock' || action.type === 'scrap') {
       setEditingAction(action);
       setSelectedAction(action.type);
       setFormData(action.formData);
@@ -521,7 +522,14 @@ const OrderedActions: React.FC = () => {
                 />
             )}
 
-            {selectedAction === 'scrap' && <Typography>Scrap Form would go here</Typography>}
+            {/* Use ScrapFormDemo for the Scrap action */}
+            {selectedAction === 'scrap' && (
+                <ScrapFormDemo
+                    onFormChange={handleFormChange}
+                    initialData={formData}
+                    onSave={handleSubmitAction}
+                />
+            )}
 
             {selectedAction === '3p-selling' && (
                 <Typography>3P Selling Form would go here</Typography>
