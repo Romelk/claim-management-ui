@@ -2,6 +2,9 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 import './index.css';
 import App from './App';
+// in index.tsx
+import './font.css';  // Import this before index.css
+// rest of your code
 
 const rootElement = document.getElementById('root');
 
